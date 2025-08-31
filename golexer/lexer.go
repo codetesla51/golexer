@@ -105,45 +105,61 @@ func isDigit(ch rune) bool {
 
 func (l *Lexer) readIdentifier() string {
 	start := l.position
-	if !isLetter(l.ch) && l.ch != '_' {
+	
+	// First character must be letter or underscore
+	if !isLetter(l.ch) {
 		l.addError("identifier must start with letter or underscore")
 		return ""
 	}
+	
+	// Read the identifier - continue while we have letters or digits
 	for isLetter(l.ch) || isDigit(l.ch) {
 		l.readChar()
 	}
 
-	return l.input[start:l.position]
+	return l.input[start:l.readPosition]
 }
 
 func (l *Lexer) readNumber() string {
 	start := l.position
+	
 	for isDigit(l.ch) {
 		l.readChar()
 	}
 
-	// Handle decimal point
 	if l.ch == '.' && isDigit(l.peekChar()) {
-		l.readChar()
+		l.readChar() // consume '.'
 		for isDigit(l.ch) {
 			l.readChar()
 		}
 	}
 
-	// Handle scientific notation (e.g., 1e10, 1.5E-3)
 	if l.ch == 'e' || l.ch == 'E' {
-		l.readChar()
+		l.readChar() // consume 'e' or 'E'
 
-		// Handle optional sign
 		if l.ch == '+' || l.ch == '-' {
 			l.readChar()
 		}
-		for isDigit(l.ch) {
+		
+		if !isDigit(l.ch) {
+			l.addError("invalid number: missing digits in exponent")
+		} else {
+			for isDigit(l.ch) {
+				l.readChar()
+			}
+		}
+	}
+	
+	if isLetter(l.ch) && l.ch != 0 {
+		l.addError("invalid number: number cannot be followed by letters")
+		// Skip the invalid characters to avoid cascading errors
+		for isLetter(l.ch) || isDigit(l.ch) {
 			l.readChar()
 		}
 	}
 
-	return l.input[start:l.position]
+	// Use readPosition (next char position) for the end slice position
+	return l.input[start:l.readPosition]
 }
 
 func (l *Lexer) readCharLiteral() string {
@@ -263,9 +279,12 @@ func (l *Lexer) NextToken() Token {
 	line := l.line
 	column := l.column
 
-	// Handle identifiers
+	// Handle identifiers and keywords
 	if isLetter(l.ch) {
 		literal := l.readIdentifier()
+		if literal == "" {
+			return Token{Type: ILLEGAL, Literal: string(l.ch), Line: line, Column: column}
+		}
 		return Token{
 			Type:    LookupIdent(literal),
 			Literal: literal,
@@ -276,9 +295,17 @@ func (l *Lexer) NextToken() Token {
 
 	// Handle numbers
 	if isDigit(l.ch) {
+		errorCountBefore := len(l.errors)
 		literal := l.readNumber()
+		
+		// Check if errors were added during number parsing
+		var tokType TokenType = NUMBER
+		if len(l.errors) > errorCountBefore {
+			tokType = ILLEGAL
+		}
+		
 		return Token{
-			Type:    NUMBER,
+			Type:    tokType,
 			Literal: literal,
 			Line:    line,
 			Column:  column,

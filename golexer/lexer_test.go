@@ -200,7 +200,7 @@ func TestErrors(t *testing.T) {
 		input         string
 		expectedError string
 	}{
-		{"123abc", "identifier must start with letter or underscore"},
+		{"123abc", "invalid number: number cannot be followed by letters"},
 		{"invalid#name", "unexpected character: #"},
 		{"'", "unterminated char literal"},
 		{"'\\x'", "unknown escape sequence '\\x' in char literal"},
