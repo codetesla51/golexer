@@ -117,7 +117,7 @@ func (l *Lexer) readIdentifier() string {
 		l.readChar()
 	}
 
-	return l.input[start:l.readPosition]
+	return l.input[start:l.position]
 }
 
 func (l *Lexer) readNumber() string {
@@ -158,8 +158,7 @@ func (l *Lexer) readNumber() string {
 		}
 	}
 
-	// Use readPosition (next char position) for the end slice position
-	return l.input[start:l.readPosition]
+	return l.input[start:l.position]
 }
 
 func (l *Lexer) readCharLiteral() string {
@@ -270,7 +269,6 @@ func (l *Lexer) skipBlockComment() {
 	}
 }
 
-// NextToken returns the next token from the input
 func (l *Lexer) NextToken() Token {
 	var tok Token
 

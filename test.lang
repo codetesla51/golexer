@@ -1,5 +1,19 @@
-let name = "usman"
-if (name == "usman"){
-return null
-}
-let int = 100
+// Identifiers with emojis
+smile😊 = 5;
+rocket🚀count = 10;
+
+// Weird Unicode letters
+变量 = 42;
+переменная = 100;
+変数 = 3.14;
+
+// Mixed with operators
+x🚀 + y🌟 - z✨;
+
+// Invalid characters
+@invalid$ %weird&;
+
+// Strings with emojis
+str1 = "hello🌍";
+str2 = "💥💥 boom!";
+str3 = "newline\nand emoji 🐍";
