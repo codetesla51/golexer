@@ -46,7 +46,7 @@ func main() {
 
 	// Example 1: Token-by-token processing
 	fmt.Println("=== Token-by-token processing ===")
-	lexer := golexer.NewLexer(string(content))
+	lexer := golexer.NewLexerWithConfig(string(content), "../config.json")
 
 	tokenCount := 0
 	for {

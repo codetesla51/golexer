@@ -92,6 +92,22 @@ func NewLexer(input string) *Lexer {
 	return l
 }
 
+// load config
+func NewLexerWithConfig(input, configFile string) *Lexer {
+	config, err := LoadConfig(configFile)
+	if err == nil {
+		config.MergeWithDefaults()
+	}
+	l := &Lexer{
+		input:  input,
+		line:   1,
+		column: 0,
+		errors: make([]*LexError, 0),
+	}
+	l.readChar()
+	return l
+}
+
 // GetErrors returns all lexical errors encountered during tokenization
 func (l *Lexer) GetErrors() []*LexError {
 	return l.errors
