@@ -21,7 +21,7 @@ const (
 	MULTIPLY = "*"
 	DIVIDE   = "/"
 	NUMBER   = "NUMBER"
-
+MODULUS = "%"
 	// Logical operators
 	BANG = "!"
 	AND  = "&&"
@@ -40,12 +40,12 @@ const (
 	MINUS_ASSIGN    = "-="
 	MULTIPLY_ASSIGN = "*="
 	DIVIDE_ASSIGN   = "/="
-
+MODULUS_ASSIGN = "%="
 	// Delimiters
 	COMMA     = ","
 	SEMICOLON = ";"
 	COLON     = ":"
-
+BACKTICK_STRING = "BACKTICK_STRING"
 	// Brackets
 	LPAREN   = "("
 	RPAREN   = ")"

@@ -1,19 +1,35 @@
-// Identifiers with emojis
-smile😊 = 5;
-rocket🚀count = 10;
+intDec = 12345;
+intHex = 0x1A3F;
+intBin = 0b101010;
+intOct = 0o755;
+floatDec = 3.14159;
+expPos = 1e10;
+expNeg = 2.5e-3;
+expCap = 1E+5;
 
-// Weird Unicode letters
-变量 = 42;
-переменная = 100;
-変数 = 3.14;
+str1 = "hello world";
+str2 = "escaped \"quote\"";
+str3 = "newline\nsecond line";
+str4 = `raw string \n no escape`;
 
-// Mixed with operators
-x🚀 + y🌟 - z✨;
+char1 = 'a';
+char2 = '\n';
+char3 = '\t';
+char4 = '\\';
+char5 = '\'';
 
-// Invalid characters
-@invalid$ %weird&;
+ident1 = myVar;
+ident2 = _underscore;
+ident3 = CamelCase;
+ident4 = variable123;
 
-// Strings with emojis
-str1 = "hello🌍";
-str2 = "💥💥 boom!";
-str3 = "newline\nand emoji 🐍";
+op1 = + - * / % == != < <= > >= && || !;
+
+unicode1 = 变量;
+unicode2 = переменная;
+unicode3 = 変数;
+unicode4 = _مؤشر;
+
+hexExpr = 0xFF + 0x1A;
+binExpr = 0b1010 * 0b11;
+octExpr = 0o77 - 0o12;

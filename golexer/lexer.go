@@ -7,6 +7,42 @@ import (
 	"unicode/utf8"
 )
 
+// Operator defines a single or compound operator
+type Operator struct {
+	Single     string
+	SingleType TokenType
+	Compound   string
+	CompoundType TokenType
+}
+
+// operators defines all operators with their single and compound forms
+var operators = []Operator{
+	{"=", ASSIGN, "==", EQL},
+	{"+", PLUS, "+=", PLUS_ASSIGN},
+	{"-", MINUS, "-=", MINUS_ASSIGN},
+	{"*", MULTIPLY, "*=", MULTIPLY_ASSIGN},
+	{"/", DIVIDE, "/=", DIVIDE_ASSIGN},
+	{"%", MODULUS, "%=", MODULUS_ASSIGN},
+	{"!", BANG, "!=", NOT_EQL},
+	{"<", LESS_THAN, "<=", LESS_THAN_EQL},
+	{">", GREATER_THAN, ">=", GREATER_THAN_EQL},
+	{"&", "", "&&", AND},     // Single & is invalid
+	{"|", "", "||", OR},      // Single | is invalid
+}
+
+// singleCharTokens maps single characters to their token types
+var singleCharTokens = map[rune]TokenType{
+	'(':  LPAREN,
+	')':  RPAREN,
+	'{':  LBRACE,
+	'}':  RBRACE,
+	'[':  LBRACKET,
+	']':  RBRACKET,
+	',':  COMMA,
+	';':  SEMICOLON,
+	':':  COLON,
+}
+
 // Lexer represents the lexical analyzer
 type Lexer struct {
 	input        string
@@ -103,12 +139,24 @@ func isDigit(ch rune) bool {
 	return unicode.IsDigit(ch)
 }
 
+func isHexDigit(ch rune) bool {
+	return isDigit(ch) || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F')
+}
+
+func isBinaryDigit(ch rune) bool {
+	return ch == '0' || ch == '1'
+}
+
+func isOctalDigit(ch rune) bool {
+	return ch >= '0' && ch <= '7'
+}
+
 func (l *Lexer) readIdentifier() string {
 	start := l.position
 	
 	// First character must be letter or underscore
 	if !isLetter(l.ch) {
-		l.addError("identifier must start with letter or underscore")
+		l.addError("identifier must start with a letter or underscore")
 		return ""
 	}
 	
@@ -123,10 +171,30 @@ func (l *Lexer) readIdentifier() string {
 func (l *Lexer) readNumber() string {
 	start := l.position
 	
+	// Check for hex, binary, or octal prefixes
+	if l.ch == '0' {
+		next := l.peekChar()
+		if next == 'x' || next == 'X' {
+			return l.readHexNumber()
+		}
+		if next == 'b' || next == 'B' {
+			return l.readBinaryNumber()
+		}
+		if next == 'o' || next == 'O' {
+			return l.readOctalNumber()
+		}
+		// Traditional octal (starts with 0)
+		if isOctalDigit(next) {
+			return l.readTraditionalOctal()
+		}
+	}
+	
+	// Regular decimal number
 	for isDigit(l.ch) {
 		l.readChar()
 	}
 
+	// Float with decimal point
 	if l.ch == '.' && isDigit(l.peekChar()) {
 		l.readChar() // consume '.'
 		for isDigit(l.ch) {
@@ -134,6 +202,7 @@ func (l *Lexer) readNumber() string {
 		}
 	}
 
+	// Scientific notation
 	if l.ch == 'e' || l.ch == 'E' {
 		l.readChar() // consume 'e' or 'E'
 
@@ -142,7 +211,7 @@ func (l *Lexer) readNumber() string {
 		}
 		
 		if !isDigit(l.ch) {
-			l.addError("invalid number: missing digits in exponent")
+			l.addError("invalid scientific notation: exponent must contain digits")
 		} else {
 			for isDigit(l.ch) {
 				l.readChar()
@@ -150,8 +219,9 @@ func (l *Lexer) readNumber() string {
 		}
 	}
 	
+	// Check for invalid trailing characters
 	if isLetter(l.ch) && l.ch != 0 {
-		l.addError("invalid number: number cannot be followed by letters")
+		l.addError("invalid number: numbers cannot be followed by letters")
 		// Skip the invalid characters to avoid cascading errors
 		for isLetter(l.ch) || isDigit(l.ch) {
 			l.readChar()
@@ -161,39 +231,185 @@ func (l *Lexer) readNumber() string {
 	return l.input[start:l.position]
 }
 
+func (l *Lexer) readHexNumber() string {
+	start := l.position
+	l.readChar() // skip '0'
+	l.readChar() // skip 'x' or 'X'
+	
+	if !isHexDigit(l.ch) {
+		l.addError("invalid hexadecimal number: must contain at least one hex digit after 0x")
+		return l.input[start:l.position]
+	}
+	
+	for isHexDigit(l.ch) {
+		l.readChar()
+	}
+	
+	// Check for invalid trailing characters
+	if isLetter(l.ch) && l.ch != 0 {
+		l.addError("invalid hexadecimal number: contains non-hex characters")
+		for isLetter(l.ch) || isDigit(l.ch) {
+			l.readChar()
+		}
+	}
+	
+	return l.input[start:l.position]
+}
+
+func (l *Lexer) readBinaryNumber() string {
+	start := l.position
+	l.readChar() // skip '0'
+	l.readChar() // skip 'b' or 'B'
+	
+	if !isBinaryDigit(l.ch) {
+		l.addError("invalid binary number: must contain at least one binary digit after 0b")
+		return l.input[start:l.position]
+	}
+	
+	for isBinaryDigit(l.ch) {
+		l.readChar()
+	}
+	
+	// Check for invalid trailing characters
+	if (isDigit(l.ch) && !isBinaryDigit(l.ch)) || isLetter(l.ch) {
+		l.addError("invalid binary number: contains non-binary characters")
+		for isLetter(l.ch) || isDigit(l.ch) {
+			l.readChar()
+		}
+	}
+	
+	return l.input[start:l.position]
+}
+
+func (l *Lexer) readOctalNumber() string {
+	start := l.position
+	l.readChar() // skip '0'
+	l.readChar() // skip 'o' or 'O'
+	
+	if !isOctalDigit(l.ch) {
+		l.addError("invalid octal number: must contain at least one octal digit after 0o")
+		return l.input[start:l.position]
+	}
+	
+	for isOctalDigit(l.ch) {
+		l.readChar()
+	}
+	
+	// Check for invalid trailing characters
+	if (isDigit(l.ch) && !isOctalDigit(l.ch)) || isLetter(l.ch) {
+		l.addError("invalid octal number: contains non-octal characters")
+		for isLetter(l.ch) || isDigit(l.ch) {
+			l.readChar()
+		}
+	}
+	
+	return l.input[start:l.position]
+}
+
+func (l *Lexer) readTraditionalOctal() string {
+	start := l.position
+	
+	for isOctalDigit(l.ch) {
+		l.readChar()
+	}
+	
+	// Check for invalid trailing characters
+	if (isDigit(l.ch) && !isOctalDigit(l.ch)) || isLetter(l.ch) {
+		l.addError("invalid octal number: contains non-octal characters")
+		for isLetter(l.ch) || isDigit(l.ch) {
+			l.readChar()
+		}
+	}
+	
+	return l.input[start:l.position]
+}
+
+func (l *Lexer) readEscapeSequence() rune {
+	l.readChar() // consume backslash
+	if l.ch == 0 {
+		l.addError("unterminated escape sequence")
+		return 0
+	}
+
+	switch l.ch {
+	case 'a':
+		return '\a' // bell
+	case 'b':
+		return '\b' // backspace
+	case 'f':
+		return '\f' // form feed
+	case 'n':
+		return '\n' // newline
+	case 'r':
+		return '\r' // carriage return
+	case 't':
+		return '\t' // tab
+	case 'v':
+		return '\v' // vertical tab
+	case '\\':
+		return '\\'
+	case '\'':
+		return '\''
+	case '"':
+		return '"'
+	case '0':
+		return '\000' // null character
+	case 'x':
+		// Hex escape sequence \xNN
+		l.readChar()
+		if !isHexDigit(l.ch) {
+			l.addError("invalid hex escape sequence: expected hex digit after \\x")
+			return 0
+		}
+		first := l.ch
+		l.readChar()
+		if !isHexDigit(l.ch) {
+			l.addError("invalid hex escape sequence: expected two hex digits after \\x")
+			return 0
+		}
+		second := l.ch
+		// Convert hex digits to rune
+		var val rune
+		if first >= '0' && first <= '9' {
+			val = (first - '0') * 16
+		} else if first >= 'a' && first <= 'f' {
+			val = (first - 'a' + 10) * 16
+		} else if first >= 'A' && first <= 'F' {
+			val = (first - 'A' + 10) * 16
+		}
+		if second >= '0' && second <= '9' {
+			val += second - '0'
+		} else if second >= 'a' && second <= 'f' {
+			val += second - 'a' + 10
+		} else if second >= 'A' && second <= 'F' {
+			val += second - 'A' + 10
+		}
+		return val
+	default:
+		l.addError(fmt.Sprintf("unknown escape sequence '\\%c'", l.ch))
+		return l.ch
+	}
+}
+
 func (l *Lexer) readCharLiteral() string {
 	var result strings.Builder
 
 	l.readChar() // consume opening '
 
 	if l.ch == 0 {
-		l.addError("unterminated char literal")
+		l.addError("unterminated character literal")
+		return ""
+	}
+
+	if l.ch == '\n' {
+		l.addError("character literal cannot contain newline")
 		return ""
 	}
 
 	if l.ch == '\\' {
-		l.readChar()
-		if l.ch == 0 {
-			l.addError("unterminated escape sequence in char literal")
-			return ""
-		}
-
-		switch l.ch {
-		case 'n':
-			result.WriteRune('\n')
-		case 't':
-			result.WriteRune('\t')
-		case 'r':
-			result.WriteRune('\r')
-		case '\\':
-			result.WriteRune('\\')
-		case '\'':
-			result.WriteRune('\'')
-		case '"':
-			result.WriteRune('"')
-		default:
-			l.addError(fmt.Sprintf("unknown escape sequence '\\%c' in char literal", l.ch))
-			result.WriteRune(l.ch)
+		char := l.readEscapeSequence()
+		if char != 0 {
+			result.WriteRune(char)
 		}
 	} else {
 		result.WriteRune(l.ch)
@@ -201,7 +417,7 @@ func (l *Lexer) readCharLiteral() string {
 
 	l.readChar()
 	if l.ch != '\'' {
-		l.addError("unterminated char literal")
+		l.addError("character literal must be closed with single quote")
 	}
 
 	return result.String()
@@ -217,31 +433,34 @@ func (l *Lexer) readString() string {
 			break
 		}
 		if l.ch == '"' {
-			l.readChar() // consume closing quote
 			break
 		}
 		if l.ch == '\\' {
-			l.readChar()
-			if l.ch == 0 {
-				l.addError("unterminated escape sequence in string literal")
-				break
-			}
-			switch l.ch {
-			case 'n':
-				result.WriteRune('\n')
-			case 't':
-				result.WriteRune('\t')
-			case '"':
-				result.WriteRune('"')
-			case '\\':
-				result.WriteRune('\\')
-			default:
-				l.addError(fmt.Sprintf("unknown escape sequence '\\%c' in string literal", l.ch))
-				result.WriteRune(l.ch)
+			char := l.readEscapeSequence()
+			if char != 0 {
+				result.WriteRune(char)
 			}
 		} else {
 			result.WriteRune(l.ch)
 		}
+	}
+
+	return result.String()
+}
+
+func (l *Lexer) readBacktickString() string {
+	var result strings.Builder
+
+	for {
+		l.readChar()
+		if l.ch == 0 {
+			l.addError("unterminated backtick string literal")
+			break
+		}
+		if l.ch == '`' {
+			break
+		}
+		result.WriteRune(l.ch)
 	}
 
 	return result.String()
@@ -267,6 +486,55 @@ func (l *Lexer) skipBlockComment() {
 		}
 		l.readChar()
 	}
+}
+
+// tryOperator attempts to match an operator and returns the token if found
+func (l *Lexer) tryOperator(line, column int) (Token, bool) {
+	for _, op := range operators {
+		if l.ch == rune(op.Single[0]) {
+			// Handle special cases for & and | which require compound form
+			if (l.ch == '&' || l.ch == '|') && op.Compound != "" {
+				if l.peekChar() == rune(op.Compound[1]) {
+					ch := l.ch
+					l.readChar()
+					return Token{
+						Type:    op.CompoundType,
+						Literal: string(ch) + string(l.ch),
+						Line:    line,
+						Column:  column,
+					}, true
+				} else {
+					// Single & or | is an error
+					suggestion := op.Compound
+					l.addError(fmt.Sprintf("unexpected character '%c' - did you mean '%s'?", l.ch, suggestion))
+					return Token{Type: ILLEGAL, Literal: string(l.ch), Line: line, Column: column}, true
+				}
+			}
+			
+			// Check for compound operator
+			if op.Compound != "" && len(op.Compound) > 1 && l.peekChar() == rune(op.Compound[1]) {
+				ch := l.ch
+				l.readChar()
+				return Token{
+					Type:    op.CompoundType,
+					Literal: string(ch) + string(l.ch),
+					Line:    line,
+					Column:  column,
+				}, true
+			}
+			
+			// Return single operator (if it has a valid single form)
+			if op.SingleType != "" {
+				return Token{
+					Type:    op.SingleType,
+					Literal: op.Single,
+					Line:    line,
+					Column:  column,
+				}, true
+			}
+		}
+	}
+	return Token{}, false
 }
 
 func (l *Lexer) NextToken() Token {
@@ -310,183 +578,24 @@ func (l *Lexer) NextToken() Token {
 		}
 	}
 
+	// Try operators first
+	if opTok, found := l.tryOperator(line, column); found {
+		l.readChar()
+		return opTok
+	}
+
+	// Handle special cases that need custom logic
 	switch l.ch {
-	case '=':
-		if l.peekChar() == '=' {
-			ch := l.ch
-			l.readChar()
-			tok = Token{
-				Type:    EQL,
-				Literal: string(ch) + string(l.ch),
-				Line:    line,
-				Column:  column,
-			}
-		} else {
-			tok = Token{
-				Type:    ASSIGN,
-				Literal: string(l.ch),
-				Line:    line,
-				Column:  column,
-			}
-		}
-	case '+':
-		if l.peekChar() == '=' {
-			ch := l.ch
-			l.readChar()
-			tok = Token{
-				Type:    PLUS_ASSIGN,
-				Literal: string(ch) + string(l.ch),
-				Line:    line,
-				Column:  column,
-			}
-		} else {
-			tok = Token{Type: PLUS, Literal: string(l.ch), Line: line, Column: column}
-		}
-	case '-':
-		if l.peekChar() == '=' {
-			ch := l.ch
-			l.readChar()
-			tok = Token{
-				Type:    MINUS_ASSIGN,
-				Literal: string(ch) + string(l.ch),
-				Line:    line,
-				Column:  column,
-			}
-		} else {
-			tok = Token{Type: MINUS, Literal: string(l.ch), Line: line, Column: column}
-		}
-	case '!':
-		if l.peekChar() == '=' {
-			ch := l.ch
-			l.readChar()
-			tok = Token{
-				Type:    NOT_EQL,
-				Literal: string(ch) + string(l.ch),
-				Line:    line,
-				Column:  column,
-			}
-		} else {
-			tok = Token{
-				Type:    BANG,
-				Literal: string(l.ch),
-				Line:    line,
-				Column:  column,
-			}
-		}
 	case '/':
+		// Handle comments
 		if l.peekChar() == '/' {
 			l.skipLineComment()
 			return l.NextToken()
 		} else if l.peekChar() == '*' {
 			l.skipBlockComment()
 			return l.NextToken()
-		} else if l.peekChar() == '=' {
-			ch := l.ch
-			l.readChar()
-			tok = Token{
-				Type:    DIVIDE_ASSIGN,
-				Literal: string(ch) + string(l.ch),
-				Line:    line,
-				Column:  column,
-			}
-		} else {
-			tok = Token{Type: DIVIDE, Literal: string(l.ch), Line: line, Column: column}
 		}
-	case '*':
-		if l.peekChar() == '=' {
-			ch := l.ch
-			l.readChar()
-			tok = Token{
-				Type:    MULTIPLY_ASSIGN,
-				Literal: string(ch) + string(l.ch),
-				Line:    line,
-				Column:  column,
-			}
-		} else {
-			tok = Token{Type: MULTIPLY, Literal: string(l.ch), Line: line, Column: column}
-		}
-	case '&':
-		if l.peekChar() == '&' {
-			ch := l.ch
-			l.readChar()
-			tok = Token{
-				Type:    AND,
-				Literal: string(ch) + string(l.ch),
-				Line:    line,
-				Column:  column,
-			}
-		} else {
-			l.addError(fmt.Sprintf("unexpected character: %c", l.ch))
-			tok = Token{Type: ILLEGAL, Literal: string(l.ch), Line: line, Column: column}
-		}
-	case '|':
-		if l.peekChar() == '|' {
-			ch := l.ch
-			l.readChar()
-			tok = Token{
-				Type:    OR,
-				Literal: string(ch) + string(l.ch),
-				Line:    line,
-				Column:  column,
-			}
-		} else {
-			l.addError(fmt.Sprintf("unexpected character: %c", l.ch))
-			tok = Token{Type: ILLEGAL, Literal: string(l.ch), Line: line, Column: column}
-		}
-	case '<':
-		if l.peekChar() == '=' {
-			ch := l.ch
-			l.readChar()
-			tok = Token{
-				Type:    LESS_THAN_EQL,
-				Literal: string(ch) + string(l.ch),
-				Line:    line,
-				Column:  column,
-			}
-		} else {
-			tok = Token{
-				Type:    LESS_THAN,
-				Literal: string(l.ch),
-				Line:    line,
-				Column:  column,
-			}
-		}
-	case '>':
-		if l.peekChar() == '=' {
-			ch := l.ch
-			l.readChar()
-			tok = Token{
-				Type:    GREATER_THAN_EQL,
-				Literal: string(ch) + string(l.ch),
-				Line:    line,
-				Column:  column,
-			}
-		} else {
-			tok = Token{
-				Type:    GREATER_THAN,
-				Literal: string(l.ch),
-				Line:    line,
-				Column:  column,
-			}
-		}
-	case '(':
-		tok = Token{Type: LPAREN, Literal: string(l.ch), Line: line, Column: column}
-	case ')':
-		tok = Token{Type: RPAREN, Literal: string(l.ch), Line: line, Column: column}
-	case '{':
-		tok = Token{Type: LBRACE, Literal: string(l.ch), Line: line, Column: column}
-	case '}':
-		tok = Token{Type: RBRACE, Literal: string(l.ch), Line: line, Column: column}
-	case '[':
-		tok = Token{Type: LBRACKET, Literal: string(l.ch), Line: line, Column: column}
-	case ']':
-		tok = Token{Type: RBRACKET, Literal: string(l.ch), Line: line, Column: column}
-	case ',':
-		tok = Token{Type: COMMA, Literal: string(l.ch), Line: line, Column: column}
-	case ';':
-		tok = Token{Type: SEMICOLON, Literal: string(l.ch), Line: line, Column: column}
-	case ':':
-		tok = Token{Type: COLON, Literal: string(l.ch), Line: line, Column: column}
+		// Division operator is handled by tryOperator above
 	case '\'':
 		char := l.readCharLiteral()
 		tok = Token{Type: CHAR, Literal: char, Line: line, Column: column}
@@ -498,11 +607,24 @@ func (l *Lexer) NextToken() Token {
 			Line:    line,
 			Column:  column,
 		}
+	case '`':
+		str := l.readBacktickString()
+		tok = Token{
+			Type:    BACKTICK_STRING,
+			Literal: str,
+			Line:    line,
+			Column:  column,
+		}
 	case 0:
 		tok = Token{Type: EOF, Literal: "", Line: line, Column: column}
 	default:
-		l.addError(fmt.Sprintf("unexpected character: %c", l.ch))
-		tok = Token{Type: ILLEGAL, Literal: string(l.ch), Line: line, Column: column}
+		// Check single character tokens
+		if tokenType, exists := singleCharTokens[l.ch]; exists {
+			tok = Token{Type: tokenType, Literal: string(l.ch), Line: line, Column: column}
+		} else {
+			l.addError(fmt.Sprintf("unexpected character '%c' (Unicode: U+%04X)", l.ch, l.ch))
+			tok = Token{Type: ILLEGAL, Literal: string(l.ch), Line: line, Column: column}
+		}
 	}
 
 	l.readChar()
