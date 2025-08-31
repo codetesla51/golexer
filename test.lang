@@ -1,4 +1,5 @@
-let 123name = "usman"
+let name = "usman"
 if (name == "usman"){
 return null
 }
+let int = 100
