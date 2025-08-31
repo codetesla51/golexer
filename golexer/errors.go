@@ -16,7 +16,6 @@ Features:
 - Standard Go error interface compliance
 */
 
-
 package golexer
 
 import "fmt"

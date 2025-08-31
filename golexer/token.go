@@ -20,7 +20,6 @@ constructs including arithmetic, logical, comparison operators,
 control flow keywords, and various literal types.
 */
 
-
 package golexer
 
 // TokenType represents the type of a token
@@ -44,7 +43,7 @@ const (
 	MULTIPLY = "*"
 	DIVIDE   = "/"
 	NUMBER   = "NUMBER"
-MODULUS = "%"
+	MODULUS  = "%"
 	// Logical operators
 	BANG = "!"
 	AND  = "&&"
@@ -63,13 +62,13 @@ MODULUS = "%"
 	MINUS_ASSIGN    = "-="
 	MULTIPLY_ASSIGN = "*="
 	DIVIDE_ASSIGN   = "/="
-MODULUS_ASSIGN = "%="
+	MODULUS_ASSIGN  = "%="
 	// Delimiters
-	COMMA     = ","
-	SEMICOLON = ";"
-	COLON     = ":"
-	DOT = "."
-BACKTICK_STRING = "BACKTICK_STRING"
+	COMMA           = ","
+	SEMICOLON       = ";"
+	COLON           = ":"
+	DOT             = "."
+	BACKTICK_STRING = "BACKTICK_STRING"
 	// Brackets
 	LPAREN   = "("
 	RPAREN   = ")"

@@ -23,7 +23,6 @@ position information for all tokens and errors, making it suitable
 for building IDEs, compilers, and language tools.
 */
 
-
 package golexer
 
 import (
@@ -35,9 +34,9 @@ import (
 
 // Operator defines a single or compound operator
 type Operator struct {
-	Single     string
-	SingleType TokenType
-	Compound   string
+	Single       string
+	SingleType   TokenType
+	Compound     string
 	CompoundType TokenType
 }
 
@@ -52,21 +51,21 @@ var operators = []Operator{
 	{"!", BANG, "!=", NOT_EQL},
 	{"<", LESS_THAN, "<=", LESS_THAN_EQL},
 	{">", GREATER_THAN, ">=", GREATER_THAN_EQL},
-	{"&", "", "&&", AND},     // Single & is invalid
-	{"|", "", "||", OR},      // Single | is invalid
+	{"&", "", "&&", AND}, // Single & is invalid
+	{"|", "", "||", OR},  // Single | is invalid
 }
 
 // singleCharTokens maps single characters to their token types
 var singleCharTokens = map[rune]TokenType{
-	'(':  LPAREN,
-	')':  RPAREN,
-	'{':  LBRACE,
-	'}':  RBRACE,
-	'[':  LBRACKET,
-	']':  RBRACKET,
-	',':  COMMA,
-	';':  SEMICOLON,
-	':':  COLON,
+	'(': LPAREN,
+	')': RPAREN,
+	'{': LBRACE,
+	'}': RBRACE,
+	'[': LBRACKET,
+	']': RBRACKET,
+	',': COMMA,
+	';': SEMICOLON,
+	':': COLON,
 	'.': DOT,
 }
 
@@ -106,7 +105,7 @@ func (l *Lexer) HasErrors() bool {
 // TokenizeAll returns all tokens from the input along with any errors
 func (l *Lexer) TokenizeAll() ([]Token, []*LexError) {
 	var tokens []Token
-	
+
 	for {
 		tok := l.NextToken()
 		if tok.Type == EOF {
@@ -114,7 +113,7 @@ func (l *Lexer) TokenizeAll() ([]Token, []*LexError) {
 		}
 		tokens = append(tokens, tok)
 	}
-	
+
 	return tokens, l.errors
 }
 
@@ -180,13 +179,13 @@ func isOctalDigit(ch rune) bool {
 
 func (l *Lexer) readIdentifier() string {
 	start := l.position
-	
+
 	// First character must be letter or underscore
 	if !isLetter(l.ch) {
 		l.addError("identifier must start with a letter or underscore")
 		return ""
 	}
-	
+
 	// Read the identifier - continue while we have letters or digits
 	for isLetter(l.ch) || isDigit(l.ch) {
 		l.readChar()
@@ -197,7 +196,7 @@ func (l *Lexer) readIdentifier() string {
 
 func (l *Lexer) readNumber() string {
 	start := l.position
-	
+
 	// Check for hex, binary, or octal prefixes
 	if l.ch == '0' {
 		next := l.peekChar()
@@ -215,7 +214,7 @@ func (l *Lexer) readNumber() string {
 			return l.readTraditionalOctal()
 		}
 	}
-	
+
 	// Regular decimal number
 	for isDigit(l.ch) {
 		l.readChar()
@@ -236,7 +235,7 @@ func (l *Lexer) readNumber() string {
 		if l.ch == '+' || l.ch == '-' {
 			l.readChar()
 		}
-		
+
 		if !isDigit(l.ch) {
 			l.addError("invalid scientific notation: exponent must contain digits")
 		} else {
@@ -245,7 +244,7 @@ func (l *Lexer) readNumber() string {
 			}
 		}
 	}
-	
+
 	// Check for invalid trailing characters
 	if isLetter(l.ch) && l.ch != 0 {
 		l.addError("invalid number: numbers cannot be followed by letters")
@@ -262,16 +261,16 @@ func (l *Lexer) readHexNumber() string {
 	start := l.position
 	l.readChar() // skip '0'
 	l.readChar() // skip 'x' or 'X'
-	
+
 	if !isHexDigit(l.ch) {
 		l.addError("invalid hexadecimal number: must contain at least one hex digit after 0x")
 		return l.input[start:l.position]
 	}
-	
+
 	for isHexDigit(l.ch) {
 		l.readChar()
 	}
-	
+
 	// Check for invalid trailing characters
 	if isLetter(l.ch) && l.ch != 0 {
 		l.addError("invalid hexadecimal number: contains non-hex characters")
@@ -279,7 +278,7 @@ func (l *Lexer) readHexNumber() string {
 			l.readChar()
 		}
 	}
-	
+
 	return l.input[start:l.position]
 }
 
@@ -287,16 +286,16 @@ func (l *Lexer) readBinaryNumber() string {
 	start := l.position
 	l.readChar() // skip '0'
 	l.readChar() // skip 'b' or 'B'
-	
+
 	if !isBinaryDigit(l.ch) {
 		l.addError("invalid binary number: must contain at least one binary digit after 0b")
 		return l.input[start:l.position]
 	}
-	
+
 	for isBinaryDigit(l.ch) {
 		l.readChar()
 	}
-	
+
 	// Check for invalid trailing characters
 	if (isDigit(l.ch) && !isBinaryDigit(l.ch)) || isLetter(l.ch) {
 		l.addError("invalid binary number: contains non-binary characters")
@@ -304,7 +303,7 @@ func (l *Lexer) readBinaryNumber() string {
 			l.readChar()
 		}
 	}
-	
+
 	return l.input[start:l.position]
 }
 
@@ -312,16 +311,16 @@ func (l *Lexer) readOctalNumber() string {
 	start := l.position
 	l.readChar() // skip '0'
 	l.readChar() // skip 'o' or 'O'
-	
+
 	if !isOctalDigit(l.ch) {
 		l.addError("invalid octal number: must contain at least one octal digit after 0o")
 		return l.input[start:l.position]
 	}
-	
+
 	for isOctalDigit(l.ch) {
 		l.readChar()
 	}
-	
+
 	// Check for invalid trailing characters
 	if (isDigit(l.ch) && !isOctalDigit(l.ch)) || isLetter(l.ch) {
 		l.addError("invalid octal number: contains non-octal characters")
@@ -329,17 +328,17 @@ func (l *Lexer) readOctalNumber() string {
 			l.readChar()
 		}
 	}
-	
+
 	return l.input[start:l.position]
 }
 
 func (l *Lexer) readTraditionalOctal() string {
 	start := l.position
-	
+
 	for isOctalDigit(l.ch) {
 		l.readChar()
 	}
-	
+
 	// Check for invalid trailing characters
 	if (isDigit(l.ch) && !isOctalDigit(l.ch)) || isLetter(l.ch) {
 		l.addError("invalid octal number: contains non-octal characters")
@@ -347,7 +346,7 @@ func (l *Lexer) readTraditionalOctal() string {
 			l.readChar()
 		}
 	}
-	
+
 	return l.input[start:l.position]
 }
 
@@ -537,7 +536,7 @@ func (l *Lexer) tryOperator(line, column int) (Token, bool) {
 					return Token{Type: ILLEGAL, Literal: string(l.ch), Line: line, Column: column}, true
 				}
 			}
-			
+
 			// Check for compound operator
 			if op.Compound != "" && len(op.Compound) > 1 && l.peekChar() == rune(op.Compound[1]) {
 				ch := l.ch
@@ -549,7 +548,7 @@ func (l *Lexer) tryOperator(line, column int) (Token, bool) {
 					Column:  column,
 				}, true
 			}
-			
+
 			// Return single operator (if it has a valid single form)
 			if op.SingleType != "" {
 				return Token{
@@ -590,13 +589,13 @@ func (l *Lexer) NextToken() Token {
 	if isDigit(l.ch) {
 		errorCountBefore := len(l.errors)
 		literal := l.readNumber()
-		
+
 		// Check if errors were added during number parsing
 		var tokType TokenType = NUMBER
 		if len(l.errors) > errorCountBefore {
 			tokType = ILLEGAL
 		}
-		
+
 		return Token{
 			Type:    tokType,
 			Literal: literal,

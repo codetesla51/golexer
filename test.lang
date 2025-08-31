@@ -313,11 +313,11 @@ fn main() {
     let message = "GoLexer Test Complete";
     let version = 1.0;
     let status = true;
-    
+
     if (status) {
         return message;
     }
-    
+
     return "Error";
 }
 

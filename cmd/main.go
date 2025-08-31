@@ -8,7 +8,7 @@ Main Command-Line Interface
 This is the main entry point for the GoLexer CLI tool. It demonstrates
 three key usage patterns of the lexer library:
 1. Token-by-token processing with detailed output
-2. Batch processing with statistical analysis  
+2. Batch processing with statistical analysis
 3. Basic syntax validation and error reporting
 
 Usage: go run main.go <filename>
@@ -18,13 +18,12 @@ The tool reads any text file and performs lexical analysis, showing
 tokens, their positions, and any lexical errors encountered.
 */
 
-
 package main
 
 import (
 	"fmt"
-	"os"
 	"github.com/codetesla51/golexer/golexer"
+	"os"
 )
 
 func main() {
@@ -71,25 +70,25 @@ func main() {
 
 	fmt.Printf("\nProcessed: %d tokens\n", tokenCount)
 	fmt.Println("\n=== Batch processing ===")
-	
+
 	// Example 2: Batch processing
 	lexer2 := golexer.NewLexer(string(content))
 	tokens, errors := lexer2.TokenizeAll()
-	
+
 	fmt.Printf("Total tokens: %d\n", len(tokens))
 	fmt.Printf("Total errors: %d\n", len(errors))
-	
+
 	// Count token types
 	tokenCounts := make(map[golexer.TokenType]int)
 	for _, token := range tokens {
 		tokenCounts[token.Type]++
 	}
-	
+
 	fmt.Println("\nToken distribution:")
 	for tokenType, count := range tokenCounts {
 		fmt.Printf("  %-15s: %d\n", tokenType, count)
 	}
-	
+
 	// Example 3: Enhanced syntax validation
 	fmt.Println("\n=== Syntax validation ===")
 	if len(errors) == 0 {
@@ -108,7 +107,7 @@ func main() {
 	fmt.Printf("Tokens generated: %d\n", len(tokens))
 	fmt.Printf("Unique token types: %d\n", len(tokenCounts))
 	fmt.Printf("Lexical errors: %d\n", len(errors))
-	
+
 	if len(errors) == 0 {
 		fmt.Println("Status: ✓ PASSED")
 	} else {
