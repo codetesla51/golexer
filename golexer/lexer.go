@@ -158,7 +158,7 @@ func (l *Lexer) readChar() {
 
 	if l.ch == '\n' {
 		l.line++
-		l.column = 0
+		l.column = 1
 	} else {
 		l.column++
 	}
@@ -211,7 +211,6 @@ func (l *Lexer) readIdentifier() string {
 	for isLetter(l.ch) || isDigit(l.ch) {
 		l.readChar()
 	}
-
 	return l.input[start:l.position]
 }
 
@@ -465,6 +464,8 @@ func (l *Lexer) readCharLiteral() string {
 	l.readChar()
 	if l.ch != '\'' {
 		l.addError("character literal must be closed with single quote")
+	} else {
+		l.readChar() // consume closing '
 	}
 
 	return result.String()
@@ -543,13 +544,14 @@ func (l *Lexer) tryOperator(line, column int) (Token, bool) {
 			if (l.ch == '&' || l.ch == '|') && op.Compound != "" {
 				if l.peekChar() == rune(op.Compound[1]) {
 					ch := l.ch
-					l.readChar()
-					return Token{
+					l.readChar() // consume first character
+					result := Token{
 						Type:    op.CompoundType,
 						Literal: string(ch) + string(l.ch),
 						Line:    line,
 						Column:  column,
-					}, true
+					}
+					return result, true
 				} else {
 					// Single & or | is an error
 					suggestion := op.Compound
@@ -561,7 +563,7 @@ func (l *Lexer) tryOperator(line, column int) (Token, bool) {
 			// Check for compound operator
 			if op.Compound != "" && len(op.Compound) > 1 && l.peekChar() == rune(op.Compound[1]) {
 				ch := l.ch
-				l.readChar()
+				l.readChar() // consume first character
 				return Token{
 					Type:    op.CompoundType,
 					Literal: string(ch) + string(l.ch),
@@ -591,6 +593,18 @@ func (l *Lexer) NextToken() Token {
 
 	line := l.line
 	column := l.column
+
+	// Handle comments FIRST (before operators)
+	if l.ch == '/' {
+		if l.peekChar() == '/' {
+			l.skipLineComment()
+			return l.NextToken()
+		} else if l.peekChar() == '*' {
+			l.skipBlockComment()
+			return l.NextToken()
+		}
+		// If not a comment, fall through to operator handling
+	}
 
 	// Handle identifiers and keywords
 	if isLetter(l.ch) {
@@ -625,7 +639,7 @@ func (l *Lexer) NextToken() Token {
 		}
 	}
 
-	// Try operators first
+	// Try operators
 	if opTok, found := l.tryOperator(line, column); found {
 		l.readChar()
 		return opTok
@@ -633,19 +647,11 @@ func (l *Lexer) NextToken() Token {
 
 	// Handle special cases that need custom logic
 	switch l.ch {
-	case '/':
-		// Handle comments
-		if l.peekChar() == '/' {
-			l.skipLineComment()
-			return l.NextToken()
-		} else if l.peekChar() == '*' {
-			l.skipBlockComment()
-			return l.NextToken()
-		}
-		// Division operator is handled by tryOperator above
 	case '\'':
 		char := l.readCharLiteral()
 		tok = Token{Type: CHAR, Literal: char, Line: line, Column: column}
+		// readCharLiteral already consumed the closing quote
+		return tok
 	case '"':
 		str := l.readString()
 		tok = Token{

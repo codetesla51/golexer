@@ -1,324 +1,408 @@
-/*
-GoLexer - A Comprehensive Lexical Analyzer for Go
-Author: Uthman Dev
-GitHub: https://github.com/codetesla51/golexer
-License: MIT
+// Comprehensive Test Language - All Valid Syntax (Should Pass)
+// Tests all features with correct syntax only
 
-Clean Test Language Sample File
-This file contains only tokens that are definitely supported
-by the GoLexer library, guaranteed to produce ZERO lexical errors.
+// ======================
+// 1. COMMENTS (Valid only)
+// ======================
 
-Use with: go run cmd/main.go test.lang
-Expected result: 0 lexical errors
-*/
-
-// ===============================================
-// KEYWORDS AND CONTROL FLOW
-// ===============================================
-
-let variable1 = 42;
-const CONSTANT_VALUE = 100;
-
-fn calculateSum(a, b) {
-    return a + b;
-}
-
-int number;
-float decimal;
-string text;
-bool flag;
-char character;
-
-if (condition) {
-    while (counter < 10) {
-        for (i = 0; i < length; i += 1) {
-            if (breakCondition) {
-                break;
-            }
-            if (skipCondition) {
-                continue;
-            }
-        }
-    }
-} else {
-    return false;
-}
-
-let truthValue = true;
-let falseValue = false;
-let emptyValue = null;
-
-// ===============================================
-// NUMBER FORMATS
-// ===============================================
-
-// Decimal integers
-intZero = 0;
-intSmall = 123;
-intLarge = 999999;
-
-// Decimal floats
-floatPi = 3.14159;
-floatZero = 0.0;
-floatHalf = 0.5;
-floatFortyTwo = 42.0;
-
-// Scientific notation
-sciBasic = 1e5;
-sciDecimal = 2.5e10;
-sciNegExp = 3.14e-2;
-sciPosExp = 1.5e+8;
-sciUpperE = 1E3;
-sciUpperDecimal = 6.02E23;
-sciUpperNeg = 9.8E-2;
-sciUpperPos = 1.23E+4;
-
-// Hexadecimal numbers
-hexSmall = 0xa;
-hexMed = 0xff;
-hexLarge = 0xFF;
-hexMixed = 0xaBcD;
-hexUpperPre = 0X1A2B;
-
-// Binary numbers
-binSmall = 0b1;
-binMed = 0b1010;
-binLarge = 0B1111;
-binLong = 0b11110000;
-
-// Octal numbers
-octModern = 0o777;
-octModernUp = 0O755;
-octTraditional = 0755;
-octSmall = 07;
-
-// ===============================================
-// STRING LITERALS
-// ===============================================
-
-// Basic strings
-str1 = "hello world";
-str2 = "";
-str3 = "single";
-
-// Escaped strings
-str4 = "He said \"Hello\"";
-str5 = "Path: C:\\Users\\Name";
-str6 = "Line1\nLine2\tTabbed";
-str7 = "Bell\a Back\b Feed\f";
-str8 = "Vertical\v Null\0";
-
-// Hex escapes in strings
-str9 = "Letter: \x41";
-str10 = "Newline: \x0A";
-str11 = "Space: \x20";
-
-// Raw strings
-raw1 = `This is raw`;
-raw2 = `No escape: \n \t`;
-raw3 = `C:\Windows\file.exe`;
-raw4 = `Multi
-line
-raw`;
-
-// ===============================================
-// CHARACTER LITERALS
-// ===============================================
-
-char1 = 'a';
-char2 = 'Z';
-char3 = '0';
-char4 = '9';
-char5 = '@';
-
-charEsc1 = '\n';
-charEsc2 = '\t';
-charEsc3 = '\r';
-charEsc4 = '\\';
-charEsc5 = '\'';
-charEsc6 = '"';
-
-charCtrl1 = '\a';
-charCtrl2 = '\b';
-charCtrl3 = '\f';
-charCtrl4 = '\v';
-charCtrl5 = '\0';
-
-charHex1 = '\x41';
-charHex2 = '\x20';
-charHex3 = '\x7F';
-
-// ===============================================
-// IDENTIFIERS
-// ===============================================
-
-validIdent = 42;
-_underscore = "value";
-CamelCase = true;
-snake_case = false;
-mixed123 = null;
-_leading = 0;
-trailing_ = 1;
-
-firstName = "John";
-lastName = "Doe";
-userAge = 25;
-isActive = true;
-accountBalance = 1000;
-
-bufferSize = 1024;
-maxRetries = 3;
-debugMode = false;
-
-// ===============================================
-// OPERATORS
-// ===============================================
-
-// Arithmetic
-add = a + b;
-sub = x - y;
-mul = m * n;
-div = p / q;
-mod = r % s;
-
-// Assignment
-assign1 = value;
-assign2 += 5;
-assign3 -= 3;
-assign4 *= 2;
-assign5 /= 4;
-assign6 %= 7;
-
-// Comparison
-eq = (a == b);
-neq = (c != d);
-lt = (e < f);
-lte = (g <= h);
-gt = (i > j);
-gte = (k >= l);
-
-// Logical
-and = (cond1 && cond2);
-or = (cond3 || cond4);
-not = (!cond5);
-
-// ===============================================
-// PUNCTUATION
-// ===============================================
-
-func1 = myFunc(arg1, arg2, arg3);
-group = (a + b) * c;
-
-block = {
-    stmt1;
-    stmt2;
-    stmt3;
-};
-
-obj = {key: value, key2: value2};
-
-arr = [x, y, z];
-access = array[index];
-
-list = item1, item2, item3;
-pair = key: value;
-
-// ===============================================
-// COMMENTS
-// ===============================================
-
-commentVar = 42; // End of line comment
-
-// Single line comment
-// Another comment line
-
-/* Block comment */
+// Single line comment at start
+let a = 42 // End of line comment
+let b = 100 /* inline block comment works fine */
 
 /* 
- * Multi-line
- * block comment
- */
+Multi-line block comment
+with multiple lines
+and special chars: !@#$%^&*()
+*/
 
-inlineVar = /* inline */ 5;
+// Comment with other comment styles inside (as text)
+let c = 10 // This comment mentions /* block */ but it's just text
+let d = 20 /* This comment mentions // line but it's just text */
 
-// ===============================================
-// COMPLEX EXPRESSIONS
-// ===============================================
+// ======================
+// 2. VALID NUMBERS ONLY
+// ======================
 
-expr1 = (a + b) * c - d / e % f;
-expr2 = x * y + z * w;
-expr3 = 2.5 * 3.14159;
+// Basic numbers
+let decimal1 = 123
+let decimal2 = 0
+let float1 = 123.456
+let float2 = 0.5
+let scientific1 = 1e10
+let scientific2 = 2.5e-3
+let scientific3 = 1E+5
+let scientific4 = 42e0
 
-bool1 = (x > 0) && (y < 100);
-bool2 = !flag1 && (flag2 || flag3);
-bool3 = (a != b) && (c <= d);
+// Hex numbers (all valid)
+let hex1 = 0x1234
+let hex2 = 0xFF
+let hex3 = 0xABCDEF
+let hex4 = 0X123ABC
+let hex5 = 0x0
 
-mixed1 = 0xFF + 0b1010;
-mixed2 = 3.14 * 0x10;
-mixed3 = 42 - 0o77;
+// Binary numbers (all valid)
+let bin1 = 0b1010
+let bin2 = 0B1111
+let bin3 = 0b11010011
+let bin4 = 0b0
+let bin5 = 0B1
 
-// ===============================================
-// REALISTIC FUNCTIONS
-// ===============================================
+// Octal numbers (all valid)
+let oct1 = 0o777
+let oct2 = 0O123
+let oct3 = 0o0
+let traditional_oct1 = 0123
+let traditional_oct2 = 077
 
-fn factorial(n) {
-    if (n <= 1) {
-        return 1;
-    } else {
-        return n * factorial(n - 1);
+// ======================
+// 3. VALID STRINGS ONLY
+// ======================
+
+// Regular strings
+let str1 = "hello world"
+let str2 = "string with spaces"
+let str3 = ""
+let str4 = "simple text"
+
+// Valid escape sequences
+let escapes1 = "line1\nline2"
+let escapes2 = "tab\there"
+let escapes3 = "quote: \"hello\""
+let escapes4 = "backslash: \\"
+let escapes5 = "special: \a\b\f\r\v\0"
+let escapes6 = "\x41\x42\x43"
+
+// Backtick strings (raw strings)
+let raw1 = `raw string with \n literal backslashes`
+let raw2 = `multi
+line
+raw string`
+let raw3 = ``
+let raw4 = `no escapes here: \t \n \" \\`
+
+// ======================
+// 4. VALID CHARACTER LITERALS
+// ======================
+
+let char1 = 'a'
+let char2 = 'Z'
+let char3 = '5'
+let char4 = ' '
+let char5 = '\n'
+let char6 = '\''
+let char7 = '\\'
+let char8 = '\t'
+let char9 = '\x41'
+
+// ======================
+// 5. VALID IDENTIFIERS
+// ======================
+
+// Standard identifiers
+let simple = 1
+let with_numbers1 = 2
+let _underscore = 3
+let __double_under = 4
+let camelCase = 5
+let snake_case = 6
+let WITH_CAPS = 7
+let mix3d_W1th_Numb3rs = 8
+
+// Keywords used properly
+let value = 42
+if condition = true
+for counter = 10
+while active = false
+function myFunc = null
+return result = 0
+
+// New keywords from config
+unless condition2 = true
+until finished = false
+async operation = pending
+await response = ready
+
+// Unicode identifiers (valid)
+let café = 9
+let résumé = 10
+
+// ======================
+// 6. VALID OPERATORS
+// ======================
+
+// Standard operators
+let math1 = a + b
+let math2 = c - d
+let math3 = e * f
+let math4 = g / h
+let math5 = i % j
+
+// Assignment operators
+let assign1 = x
+assign1 += 5
+assign1 -= 3
+assign1 *= 2
+assign1 /= 4
+assign1 %= 3
+
+// Comparison operators
+let comp1 = a == b
+let comp2 = c != d
+let comp3 = e < f
+let comp4 = g <= h
+let comp5 = i > j
+let comp6 = k >= l
+
+// Logical operators (valid compound forms)
+let logic1 = condition1 && condition2
+let logic2 = condition3 || condition4
+let logic3 = !condition5
+
+// New operators from config
+let power = base ** exponent
+let nullCoalesce = value ?? defaultValue
+let safeNav = object ?. property
+
+// ======================
+// 7. VALID PUNCTUATION
+// ======================
+
+// Standard punctuation
+let array = [1, 2, 3, 4, 5]
+let object = {key1: value1, key2: value2}
+let result = func(param1, param2, param3)
+let access = obj.property
+let statement = expression;
+
+// New punctuation from config
+let annotation = @decorator
+let hash = #tag
+let dollar = $variable
+
+// Complex nested structures
+let complex = {
+    users: [
+        {name: "Alice", age: 30},
+        {name: "Bob", age: 25}
+    ],
+    config: {
+        enabled: true,
+        timeout: 5000
     }
 }
 
-fn fibonacci(n) {
-    if (n <= 1) {
-        return n;
-    }
-    return fibonacci(n - 1) + fibonacci(n - 2);
+// ======================
+// 8. WHITESPACE HANDLING
+// ======================
+
+let normal_spaces = 42
+let	with_tabs	=	43
+let
+on_multiple
+lines
+=
+44
+
+// Mixed whitespace (all valid)
+let   extra   spaces   =   45
+let	mixed_tabs_spaces = 46
+
+// ======================
+// 9. COMPLEX VALID EXPRESSIONS
+// ======================
+
+// Mathematical expressions
+let calculation1 = (a + b) * c - d / e % f
+let calculation2 = base ** 2 + sqrt_value
+let calculation3 = ((x * y) + z) / (a - b)
+
+// Logical expressions  
+let condition_check = (age >= 18) && (status == "active") || override
+let null_check = user ?? defaultUser
+let safe_access = data ?. items ?. length
+
+// Function-like syntax
+function processData(input, options, callback) {
+    let temp = input * 2.5
+    let result = temp + options.offset
+    return callback(result)
 }
 
-fn processArray(arr, size) {
-    let result = 0;
-    for (i = 0; i < size; i += 1) {
-        result += arr[i];
-    }
-    return result;
+// Control structures
+if ((condition1 && condition2) || fallback) {
+    let temp = getValue(x, y, z)
+    result = temp * multiplier
 }
 
-// ===============================================
-// DATA STRUCTURES
-// ===============================================
-
-coordinates = [x, y, z];
-matrix = [[1, 2, 3], [4, 5, 6]];
-
-config = {
-    host: "localhost",
-    port: 8080,
-    secure: true,
-    timeout: 30
-};
-
-user = {
-    name: "Alice",
-    age: 30,
-    active: true,
-    balance: 1500.75
-};
-
-// ===============================================
-// FINAL VALIDATION
-// ===============================================
-
-fn main() {
-    let message = "GoLexer Test Complete";
-    let version = 1.0;
-    let status = true;
-
-    if (status) {
-        return message;
-    }
-
-    return "Error";
+unless errorOccurred {
+    processSuccess()
 }
 
-finalVar = "All tests passed";
+until finished {
+    continueWork()
+}
+
+async function fetchData() {
+    let response = await apiCall()
+    return response.data
+}
+
+// ======================
+// 10. MIXED CONTENT
+// ======================
+
+// Comments mixed with complex code
+/* Configuration section */
+let config = {
+    // Database settings
+    db_host: "localhost",     // Default host  
+    db_port: 5432,           /* Standard port */
+    
+    // API settings
+    api_key: "sk-1234567890abcdef", // Secret key
+    timeout: 30.0,           // In seconds
+    retries: 3,             // Max attempts
+    
+    // New features
+    power_mode: enabled ** 2,
+    fallback: primary ?? secondary,
+    safe_prop: obj ?. prop
+}
+
+// Array operations
+let numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+let filtered = numbers.filter(x => x > 5)
+let mapped = numbers.map(x => x ** 2)
+
+// String operations with escapes
+let message = "Hello, \"World\"!\nWelcome to the system."
+let template = `User: ${user.name}
+Status: ${user.active ? "Active" : "Inactive"}
+Last Login: ${formatDate(user.lastLogin)}`
+
+// ======================
+// 11. ADVANCED FEATURES
+// ======================
+
+// Decorators and annotations
+@Component({
+    selector: "#app",
+    template: "./app.html"
+})
+class AppComponent {
+    @Input() data = null
+    @Output() event = new EventEmitter()
+}
+
+// Dollar variables (shell-like)
+let path = $HOME + "/documents"
+let user = $USER ?? "anonymous"
+
+// Hash tags and metadata
+let tags = [#important, #todo, #review]
+let metadata = {
+    #version: "1.0.0",
+    #author: "developer",
+    #created: "2024-01-01"
+}
+
+// ======================
+// 12. COMPREHENSIVE COMBINATIONS
+// ======================
+
+// Everything together in realistic code
+async function comprehensive_example() {
+    // Variable declarations with all number types
+    let decimal = 42
+    let hex = 0xFF
+    let binary = 0b1010
+    let octal = 0o777
+    let float = 3.14159
+    let scientific = 1.23e-4
+    
+    // String handling
+    let greeting = "Hello, World!"
+    let multiline = `This is a
+    multiline string with ${variable} interpolation`
+    
+    // Character handling
+    let newline = '\n'
+    let quote = '\''
+    let unicode = '\x48'
+    
+    // All operators in action
+    let math = (a + b) * c / d % e
+    let comparison = (x == y) && (a != b) || (c < d) && (e >= f)
+    let assignment = value
+    assignment += increment
+    assignment *= factor
+    
+    // New operators
+    let powered = base ** exponent
+    let coalesced = nullable ?? "default"
+    let safe = object ?. property ?. nested
+    
+    // Complex data structures
+    let data = {
+        users: [
+            {name: "Alice", scores: [85, 92, 78]},
+            {name: "Bob", scores: [90, 88, 95]}
+        ],
+        config: {
+            @timeout: 5000,
+            #debug: true,
+            $environment: "production"
+        }
+    }
+    
+    // Control flow with new keywords
+    unless error {
+        process_data()
+    }
+    
+    until complete {
+        await step()
+    }
+    
+    // Function calls and access
+    let result = calculate(data.users[0].scores)
+    let final = result ?. value ?? fallback_value ** 2
+    
+    return final
+}
+
+// ======================
+// 13. EDGE CASES (Valid)
+// ======================
+
+// Numbers at boundaries
+let zero = 0
+let one = 1
+let large = 999999999999
+let tiny = 0.000001
+let exp_pos = 1e+10
+let exp_neg = 1e-10
+
+// Empty structures
+let empty_array = []
+let empty_object = {}
+let empty_string = ""
+let empty_raw = ``
+
+// Single character tokens
+let punctuation_test = (((([[[{{{,,,}}}]]]))))
+let operators_test = a + b - c * d / e % f == g != h < i <= j > k >= l
+
+// Long identifiers
+let very_long_identifier_name_that_tests_buffer_handling_with_underscores_and_numbers_123_456 = true
+
+// Comments at various positions
+let before_comment = 42 // comment here
+/* comment */ let after_comment = 43
+let between /* comment */ assignment = 44
+
+// ======================
+// END OF VALID TEST FILE
+// ======================
+
+// Final comment to test EOF handling
