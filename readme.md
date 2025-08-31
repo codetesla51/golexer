@@ -6,19 +6,15 @@
 
 A comprehensive lexical analyzer (tokenizer) library for Go. Designed for building programming languages, domain-specific languages (DSLs), configuration parsers, and template engines.
 
-## Table of Contents
+## Features
 
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [API Reference](#api-reference)
-- [Supported Tokens](#supported-tokens)
-- [Error Handling](#error-handling)
-- [Examples](#examples)
-- [Extending the Lexer](#extending-the-lexer)
-- [Testing](#testing)
-- [Performance](#performance)
-- [Contributing](#contributing)
-- [License](#license)
+- **50+ Token Types**: Keywords, operators, literals, punctuation with precise position tracking
+- **Multiple Number Formats**: Decimal, hex, binary, octal, scientific notation
+- **String Processing**: Regular strings, raw strings, character literals with full escape sequences
+- **JSON Configuration**: Extend lexer with custom keywords, operators, and punctuation
+- **Robust Error Handling**: Graceful degradation with detailed error messages and position tracking
+- **Unicode Support**: Full UTF-8 identifier support
+- **Performance**: Single-pass tokenization processing 1700+ tokens instantly
 
 ## Installation
 
@@ -30,7 +26,7 @@ Requires Go 1.21 or later.
 
 ## Quick Start
 
-### Basic Tokenization
+### Basic Usage
 
 ```go
 package main
@@ -42,7 +38,6 @@ import (
 
 func main() {
     source := `let x = 42 + 3.14;`
-    
     lexer := golexer.NewLexer(source)
     
     for {
@@ -50,18 +45,39 @@ func main() {
         if token.Type == golexer.EOF {
             break
         }
-        
         fmt.Printf("%-15s %-15s Line:%d Col:%d\n", 
             token.Type, token.Literal, token.Line, token.Column)
     }
-    
-    // Check for lexical errors
-    if lexer.HasErrors() {
-        for _, err := range lexer.GetErrors() {
-            fmt.Printf("Error: %s\n", err.Error())
-        }
-    }
 }
+```
+
+### With Custom Configuration
+
+Create `config.json`:
+```json
+{
+  "additionalKeywords": {
+    "unless": "UNLESS",
+    "async": "ASYNC"
+  },
+  "additionalOperators": {
+    "**": "POWER",
+    "??": "NULL_COALESCE"
+  },
+  "additionalPunctuation": {
+    "@": "AT_SYMBOL",
+    "#": "HASH"
+  }
+}
+```
+
+Use with configuration:
+```go
+lexer := golexer.NewLexerWithConfig(source, "config.json")
+
+// If config file is missing or invalid, shows warning and continues with defaults:
+// Warning: failed to load config file 'config.json': no such file or directory
+// Continuing with default configuration...
 ```
 
 ### Batch Processing
@@ -71,141 +87,59 @@ lexer := golexer.NewLexer(source)
 tokens, errors := lexer.TokenizeAll()
 
 fmt.Printf("Processed %d tokens with %d errors\n", len(tokens), len(errors))
-
-// Analyze token distribution
-counts := make(map[golexer.TokenType]int)
-for _, token := range tokens {
-    counts[token.Type]++
-}
 ```
-
-### Testing the Lexer
-
-A comprehensive test file (`test.lang`) is included that demonstrates all supported features:
-
-```bash
-# Clone the repository
-git clone https://github.com/codetesla51/golexer.git
-cd golexer
-
-# Run the comprehensive test
-go run cmd/main.go test.lang
-
-# Should output: Status: ✓ PASSED with 0 lexical errors
-```
-
-The `test.lang` file contains over 1700 tokens showcasing every supported feature, making it an excellent reference for understanding the lexer's capabilities.
 
 ## API Reference
 
-### Core Types
-
-#### Lexer
+### Core Functions
 
 ```go
-type Lexer struct {
-    // Contains unexported fields for lexical analysis state
-}
-
-// NewLexer creates a new lexer instance
+// Basic lexer
 func NewLexer(input string) *Lexer
 
-// NextToken returns the next token from the input
-func (l *Lexer) NextToken() Token
+// Lexer with JSON configuration (graceful error handling)
+func NewLexerWithConfig(input, configFile string) *Lexer
 
-// TokenizeAll processes the entire input and returns all tokens
+// Tokenization
+func (l *Lexer) NextToken() Token
 func (l *Lexer) TokenizeAll() ([]Token, []*LexError)
 
-// HasErrors returns true if lexical errors were encountered
+// Error handling
 func (l *Lexer) HasErrors() bool
-
-// GetErrors returns all lexical errors with position information
 func (l *Lexer) GetErrors() []*LexError
 ```
 
-#### Token
+### Token Structure
 
 ```go
 type Token struct {
     Type    TokenType  // Token classification
-    Literal string     // Original text from source
+    Literal string     // Original text
     Line    int        // Line number (1-indexed)
     Column  int        // Column number (1-indexed)
 }
 ```
 
-#### Error Handling
-
-```go
-type LexError struct {
-    Message string
-    Line    int
-    Column  int
-}
-
-func (e *LexError) Error() string
-```
-
-### Token Types
-
-All token types are exported constants of type `TokenType`:
-
-```go
-// Control flow
-golexer.LET, golexer.CONST, golexer.FN, golexer.IF, golexer.ELSE
-golexer.WHILE, golexer.FOR, golexer.RETURN, golexer.BREAK, golexer.CONTINUE
-
-// Literals
-golexer.IDENT, golexer.NUMBER, golexer.STRING, golexer.BACKTICK_STRING, golexer.CHAR
-golexer.TRUE, golexer.FALSE, golexer.NULL
-
-// Operators
-golexer.PLUS, golexer.MINUS, golexer.MULTIPLY, golexer.DIVIDE, golexer.MODULUS
-golexer.ASSIGN, golexer.PLUS_ASSIGN, golexer.MINUS_ASSIGN, golexer.MULTIPLY_ASSIGN, golexer.DIVIDE_ASSIGN, golexer.MODULUS_ASSIGN
-
-// Comparison
-golexer.EQL, golexer.NOT_EQL, golexer.LESS_THAN, golexer.LESS_THAN_EQL
-golexer.GREATER_THAN, golexer.GREATER_THAN_EQL
-
-// Logical
-golexer.AND, golexer.OR, golexer.BANG
-
-// Delimiters
-golexer.LPAREN, golexer.RPAREN, golexer.LBRACE, golexer.RBRACE
-golexer.LBRACKET, golexer.RBRACKET, golexer.COMMA, golexer.SEMICOLON, golexer.COLON, golexer.DOT
-
-// Special
-golexer.EOF, golexer.ILLEGAL
-```
-
 ## Supported Tokens
 
 ### Numbers
+GoLexer supports all modern number formats with proper validation:
 
-#### Decimal Numbers
-- Integers: `42`, `0`, `1000`
-- Floats: `3.14`, `0.5`, `42.0`
-- Scientific notation: `1e10`, `2.5e-3`, `1E+5`
-
-#### Hexadecimal Numbers
-- Lowercase: `0xff`, `0x1a2b`
-- Uppercase: `0xFF`, `0X1A2B`
-
-#### Binary Numbers
-- Lowercase: `0b1010`, `0b1111`
-- Uppercase: `0B1010`, `0B0000`
-
-#### Octal Numbers
-- Modern syntax: `0o777`, `0O123`
-- Traditional syntax: `0777`, `0123`
+- **Decimal integers**: `42`, `0`, `1000`
+- **Decimal floats**: `3.14`, `0.5`, `42.0`  
+- **Scientific notation**: `1e10`, `2.5e-3`, `1E+5` (supports +/- exponents)
+- **Hexadecimal**: `0xff`, `0xFF`, `0x1a2b`, `0X1A2B`
+- **Binary**: `0b1010`, `0b1111`, `0B1010`, `0B0000`
+- **Octal modern**: `0o777`, `0O123` (explicit octal prefix)
+- **Octal traditional**: `0755`, `0123` (legacy format)
 
 ### String Literals
+Complete string processing with escape sequence support:
 
-#### Regular Strings
-Double-quoted strings with escape sequence processing:
+#### Regular Strings (Double-quoted)
 ```
 "hello world"
-"line 1\nline 2"
+"line 1\nline 2" 
 "tab\tseparated\tvalues"
 "quote: \"hello\""
 "backslash: \\"
@@ -213,8 +147,8 @@ Double-quoted strings with escape sequence processing:
 "hex escape: \x41"  // Equals "A"
 ```
 
-#### Raw Strings
-Backtick-quoted strings with no escape processing:
+#### Raw Strings (Backtick-quoted)
+No escape processing - literal text including backslashes:
 ```
 `raw string with \n literal backslashes`
 `file path: C:\Users\Name\file.txt`
@@ -223,180 +157,122 @@ line
 string`
 ```
 
-#### Character Literals
-Single-quoted character literals:
+#### Character Literals (Single-quoted)
 ```
-'a', 'Z', '0', '9'
-'\n', '\t', '\r', '\\'
-'\x41'  // Hex escape for 'A'
+'a', 'Z', '0', '9'     // Regular characters
+'\n', '\t', '\r', '\\'  // Escape sequences  
+'\x41'                  // Hex escape for 'A'
 ```
 
 ### Escape Sequences
+| Sequence | Result | Description |
+|----------|--------|-------------|
+| `\n` | newline | Line break |
+| `\t` | tab | Horizontal tab |
+| `\r` | return | Carriage return |
+| `\\` | backslash | Literal backslash |
+| `\"` | quote | Double quote |
+| `\'` | apostrophe | Single quote |
+| `\0` | null | Null character |
+| `\xNN` | character | Hex escape (NN = hex digits) |
 
-| Sequence | Character | Description |
-|----------|-----------|-------------|
-| `\a` | `\x07` | Bell (alert) |
-| `\b` | `\x08` | Backspace |
-| `\f` | `\x0C` | Form feed |
-| `\n` | `\x0A` | Newline |
-| `\r` | `\x0D` | Carriage return |
-| `\t` | `\x09` | Horizontal tab |
-| `\v` | `\x0B` | Vertical tab |
-| `\\` | `\x5C` | Backslash |
-| `\'` | `\x27` | Single quote |
-| `\"` | `\x22` | Double quote |
-| `\0` | `\x00` | Null character |
-| `\xNN` | | Hex escape (NN = hex digits) |
+### Keywords and Identifiers
+Built-in language keywords:
+```
+let const fn if else while for return break continue true false null
+int float string bool char
+```
+
+Valid identifiers: `variable1`, `_underscore`, `CamelCase`, `snake_case`, `mixed123`
+
+### Operators
+Complete operator set with compound assignments:
+
+- **Arithmetic**: `+` `-` `*` `/` `%`
+- **Assignment**: `=` `+=` `-=` `*=` `/=` `%=`
+- **Comparison**: `==` `!=` `<` `<=` `>` `>=`
+- **Logical**: `&&` `||` `!`
+
+### Punctuation and Delimiters
+```
+( ) { } [ ]    // Grouping and blocks
+, ; : .        // Separators and access
+```
 
 ### Comments
-
-#### Line Comments
 ```go
-let x = 5; // This is a line comment
-// Full line comment
-```
-
-#### Block Comments
-```go
-/* Single line block comment */
-
-/*
- * Multi-line
- * block comment
- */
-
-let x = /* inline */ 42;
-```
-
-### Operators and Punctuation
-
-#### Arithmetic Operators
-```go
-+    // Addition
--    // Subtraction  
-*    // Multiplication
-/    // Division
-%    // Modulus
-```
-
-#### Assignment Operators
-```go
-=     // Assignment
-+=    // Add and assign
--=    // Subtract and assign
-*=    // Multiply and assign
-/=    // Divide and assign
-%=    // Modulus and assign
-```
-
-#### Comparison Operators
-```go
-==    // Equal
-!=    // Not equal
-<     // Less than
-<=    // Less than or equal
->     // Greater than
->=    // Greater than or equal
-```
-
-#### Logical Operators
-```go
-&&    // Logical AND
-||    // Logical OR
-!     // Logical NOT
-```
-
-#### Delimiters
-```go
-( )   // Parentheses
-{ }   // Braces
-[ ]   // Brackets
-,     // Comma
-;     // Semicolon
-:     // Colon
-.     // Dot (for property access, method calls)
+// Line comments - rest of line ignored
+/* Block comments - can span multiple lines */
+let x = /* inline comment */ 42;
 ```
 
 ## Error Handling
 
-The lexer implements comprehensive error handling with detailed position information:
+GoLexer provides comprehensive error handling with precise position tracking and graceful recovery strategies.
 
-### Error Types
+### Lexical Error Types
+The lexer detects and reports various syntax errors:
 
-1. **Invalid Numbers**: `123abc`, `0xGHI`, `0b123`, `1e`
-2. **Unterminated Literals**: `"unclosed string`, `'unclosed char`, `` `unclosed backtick``
-3. **Invalid Escape Sequences**: `"\q"`, `'\x'`, `'\xGG'`
-4. **Unexpected Characters**: `@`, `#`, `$`, single `&` or `|`
-5. **Unterminated Comments**: `/* unclosed block comment`
+| Error Type | Input Example | Error Message |
+|------------|---------------|---------------|
+| Invalid numbers | `123abc` | `invalid number: numbers cannot be followed by letters` |
+| Invalid hex | `0xGHI` | `invalid hexadecimal number: contains non-hex characters` |
+| Invalid binary | `0b123` | `invalid binary number: contains non-binary characters` |
+| Unterminated strings | `"hello` | `unterminated string literal` |
+| Invalid escapes | `"\q"` | `unknown escape sequence '\q'` |
+| Unterminated comments | `/* comment` | `unterminated block comment` |
+| Unexpected chars | `@` | `unexpected character '@' (Unicode: U+0040)` |
+| Invalid operators | `&` | `unexpected character '&' - did you mean '&&'?` |
 
 ### Error Recovery
-
-The lexer continues processing after encountering errors, allowing you to collect all issues in a single pass:
+The lexer continues processing after errors, collecting all issues in a single pass:
 
 ```go
 source := `
 let x = 123abc;    // Error: invalid number
-let y = "valid";   // This still processes correctly
+let y = "valid";   // This processes correctly  
 let z = 0xGHI;     // Error: invalid hex
 `
 
 lexer := golexer.NewLexer(source)
 tokens, errors := lexer.TokenizeAll()
-
 // Gets both valid tokens AND all errors
-fmt.Printf("Tokens: %d, Errors: %d\n", len(tokens), len(errors))
 ```
 
-### Error Information
+### Configuration Error Handling
+**New Feature**: Graceful configuration loading with informative error messages.
 
-Each error includes precise location information:
+The system handles configuration issues elegantly:
 
-```go
-for _, err := range lexer.GetErrors() {
-    fmt.Printf("Line %d, Column %d: %s\n", err.Line, err.Column, err.Message)
-}
-// Output: Line 2, Column 9: invalid number: numbers cannot be followed by letters
+```bash
+# Missing configuration file
+Warning: failed to load config file 'config.json': no such file or directory
+Continuing with default configuration...
+
+# Invalid JSON syntax  
+Warning: failed to load config file 'config.json': invalid character '}' looking for beginning of object key string
+Continuing with default configuration...
+
+# Permission denied
+Warning: failed to load config file 'config.json': permission denied
+Continuing with default configuration...
 ```
+
+**Key Benefits:**
+- **Uninterrupted development** - never crashes due to config issues
+- **Clear diagnostic messages** - users know exactly what went wrong
+- **Automatic fallback** - continues with working default settings  
+- **Professional UX** - handles edge cases gracefully
 
 ## Examples
 
-### Complete Test File
+### Real-world Usage Patterns
 
-The repository includes a comprehensive test file (`test.lang`) that demonstrates all lexer capabilities:
-
-```bash
-# Run the comprehensive test
-go run cmd/main.go test.lang
-
-# Expected output:
-# Status: ✓ PASSED
-# Tokens generated: 1700+
-# Unique token types: 50+
-# Lexical errors: 0
-```
-
-The test file contains real-world examples of:
-- All number formats (decimal, hex, binary, octal, scientific notation)
-- String literals with escape sequences and raw strings
-- Character literals with all supported escapes
-- Unicode identifier support
-- Complete operator and punctuation coverage
-- Complex expressions and nested structures
-- Realistic function and data structure patterns
-
-### Building a Simple Parser
-
+#### Building a Configuration Parser
 ```go
-package main
-
-import (
-    "fmt"
-    "github.com/codetesla51/golexer/golexer"
-)
-
-// Simple expression parser using the lexer
-func parseExpression(source string) {
+func parseConfig(source string) map[string]interface{} {
     lexer := golexer.NewLexer(source)
+    config := make(map[string]interface{})
     
     for {
         tok := lexer.NextToken()
@@ -405,277 +281,177 @@ func parseExpression(source string) {
         }
         
         switch tok.Type {
-        case golexer.NUMBER:
-            fmt.Printf("Found number: %s\n", tok.Literal)
         case golexer.IDENT:
-            fmt.Printf("Found variable: %s\n", tok.Literal)
-        case golexer.PLUS, golexer.MINUS, golexer.MULTIPLY, golexer.DIVIDE:
-            fmt.Printf("Found operator: %s\n", tok.Literal)
-        case golexer.DOT:
-            fmt.Printf("Found property access\n")
+            key := tok.Literal
+            // Expect ':' then value
+            if nextTok := lexer.NextToken(); nextTok.Type == golexer.COLON {
+                valueTok := lexer.NextToken()
+                config[key] = parseValue(valueTok)
+            }
         }
     }
-}
-
-func main() {
-    parseExpression("object.property + 42 * y")
+    return config
 }
 ```
 
-### Basic Token Analysis
-
+#### Token Analysis and Statistics  
 ```go
-func analyzeTokens(source string) {
+func analyzeCode(source string) {
     lexer := golexer.NewLexer(source)
-    tokens, _ := lexer.TokenizeAll()
+    tokens, errors := lexer.TokenizeAll()
     
-    // Count different token types
+    // Count token types
     counts := make(map[golexer.TokenType]int)
     for _, token := range tokens {
         counts[token.Type]++
     }
     
-    fmt.Printf("Found %d total tokens\n", len(tokens))
+    fmt.Printf("Code Analysis Results:\n")
+    fmt.Printf("Total tokens: %d\n", len(tokens))
+    fmt.Printf("Total errors: %d\n", len(errors))
+    
+    // Show most common tokens
     for tokenType, count := range counts {
-        fmt.Printf("  %s: %d\n", tokenType, count)
+        fmt.Printf("  %-15s: %d\n", tokenType, count)
     }
 }
 ```
 
-## Extending the Lexer
-
-The lexer architecture makes it easy to add new language features. Here's how we recently added DOT token support:
-
-### Adding New Punctuation Tokens
-
-**Step 1**: Add the token type constant in `golexer/token.go`:
+#### Custom Language Extension
 ```go
-const (
-    // existing constants...
-    DOT = "."  // Add new token type
-    // rest of constants...
-)
+// config.json for JavaScript-like syntax
+{
+  "additionalKeywords": {
+    "class": "CLASS",
+    "extends": "EXTENDS", 
+    "async": "ASYNC",
+    "await": "AWAIT"
+  },
+  "additionalOperators": {
+    "**": "EXPONENT",
+    "?.": "OPTIONAL_CHAIN",
+    "??": "NULL_COALESCE"
+  }
+}
+
+// Usage
+lexer := golexer.NewLexerWithConfig(jsCode, "js-config.json")
+// Now recognizes: class MyClass extends BaseClass { async method() { ... } }
 ```
 
-**Step 2**: Add the character mapping in `golexer/lexer.go`:
+## Advanced Features
+
+### Unicode and Internationalization
+Full UTF-8 identifier support allows international variable names:
 ```go
-var singleCharTokens = map[rune]TokenType{
-    // existing mappings...
-    '.': DOT,  // Map character to token type
+// Valid identifiers in different languages
+let переменная = 42;      // Russian
+const 变量 = "value";     // Chinese  
+fn función() { ... }      // Spanish
+```
+
+### Performance Characteristics
+- **Single-pass scanning**: Complete tokenization in one iteration
+- **Memory efficient**: Minimal allocations, reuses buffers where possible
+- **UTF-8 optimized**: Proper rune handling without unnecessary conversions
+- **Error recovery**: Continues processing after errors without performance penalty
+
+**Benchmark**: Processes 1700+ tokens with 50+ token types instantly
+
+### Extending the Lexer
+
+#### Method 1: JSON Configuration (Recommended)
+Extend without touching source code:
+
+```json
+{
+  "additionalKeywords": {
+    "unless": "UNLESS",
+    "until": "UNTIL"
+  },
+  "additionalOperators": {
+    "**": "POWER",
+    "<=>": "SPACESHIP"
+  },
+  "additionalPunctuation": {
+    "@": "AT_SYMBOL", 
+    "#": "HASH"
+  }
 }
 ```
 
-**That's it!** The lexer will now recognize dots and classify them as DOT tokens.
+#### Method 2: Source Code Modification
+For permanent built-in support:
 
-### Adding New Keywords
+1. **Add token type** in `golexer/token.go`:
+   ```go
+   const DOT = "."
+   ```
 
-**Step 1**: Add the token type constant in `golexer/token.go`:
-```go
-const (
-    // existing constants...
-    ASYNC = "ASYNC"
-    AWAIT = "AWAIT" 
-    CLASS = "CLASS"
-)
-```
+2. **Add recognition** in `golexer/lexer.go`:
+   ```go
+   var singleCharTokens = map[rune]TokenType{
+       '.': DOT,  // Maps '.' character to DOT token
+   }
+   ```
 
-**Step 2**: Add to the keywords map in `golexer/token.go`:
-```go
-var keywords = map[string]TokenType{
-    // existing keywords...
-    "async":  ASYNC,
-    "await":  AWAIT,
-    "class":  CLASS,
-}
-```
+3. **Test the change**:
+   ```bash
+   go run cmd/main.go test.lang  # Should show 0 errors
+   ```
 
-### Adding New Operators
+## Testing and Validation
 
-For compound operators, add to the operators slice in `golexer/lexer.go`:
-```go
-var operators = []Operator{
-    // existing operators...
-    {"*", MULTIPLY, "**", POWER},        // * and **
-    {"?", QUESTION, "??", NULL_COALESCE}, // ? and ??
-}
-```
-
-Don't forget to add the corresponding token type constants in `token.go`:
-```go
-const (
-    // existing constants...
-    POWER        = "**"
-    QUESTION     = "?"
-    NULL_COALESCE = "??"
-)
-```
-
-### Real Example: Adding DOT Support
-
-Here's exactly what we did to add DOT token support:
-
-**Before**: `object.property` would generate "unexpected character '.'" errors
-
-**After adding DOT support**:
-1. Added `DOT = "."` to token constants
-2. Added `'.': DOT,` to singleCharTokens map
-3. Now `object.property` tokenizes as: `IDENT("object")`, `DOT(".")`, `IDENT("property")`
-
-**Result**: Zero lexical errors, proper tokenization of property access patterns.
-
-### Testing New Features
-
-When adding new tokens:
-
-1. **Add examples to test.lang** - include your new token in realistic contexts
-2. **Run the test**: `go run cmd/main.go test.lang`
-3. **Verify zero errors** and check token distribution
-4. **Add unit tests** for edge cases
-
-## Performance
-
-The lexer is designed for performance with a focus on simplicity and correctness:
-
-- **UTF-8 support** with efficient rune processing
-- **Single-pass tokenization** with error recovery
-- **Memory efficient** token generation
-- **1700+ tokens processed** in the comprehensive test with zero errors
-
-Run the included performance test:
-```bash
-go run cmd/main.go test.lang
-# Processes 1700+ tokens across 50+ token types instantly
-```
-
-## Unicode Support
-
-The lexer uses Go's UTF-8 support for processing source code. Identifiers can contain Unicode letters as defined by Go's `unicode.IsLetter()` function:
-
-```go
-// These work because they are Unicode letters
-переменная = 42;  // Russian
-变量 = "test";     // Chinese
-```
-
-**Note**: For maximum compatibility, the included `test.lang` uses ASCII identifiers, but Unicode support is fully implemented.
-
-## Testing
-
-### Running Tests
-
-```bash
-# Run the test suite
-go test ./...
-
-# Run with coverage
-go test -cover ./...
-
-# Test with the comprehensive example
-go run cmd/main.go test.lang
-```
-
-### Comprehensive Test File
-
-The `test.lang` file serves as both documentation and validation:
-- **1700+ tokens** demonstrating every feature
-- **50+ unique token types** 
-- **Real-world code patterns** including functions, arrays, objects
-- **All number formats** and string variations
-- **Zero lexical errors** when properly processed
-
-### Expected Test Results
-
-When running `go run cmd/main.go test.lang`, you should see:
-```
-Status: ✓ PASSED
-Tokens generated: 1700+
-Unique token types: 50+
-Lexical errors: 0
-```
-
-If you see lexical errors, it typically indicates:
-1. Missing token type support (like we had with DOT)
-2. Unicode compatibility issues
-3. Malformed test input
-
-## Error Handling
-
-### Error Types and Messages
-
-The lexer provides detailed error messages for common issues:
-
-| Error Type | Example Input | Error Message |
-|------------|---------------|---------------|
-| Invalid number | `123abc` | `invalid number: numbers cannot be followed by letters` |
-| Invalid hex | `0xGHI` | `invalid hexadecimal number: contains non-hex characters` |
-| Invalid binary | `0b123` | `invalid binary number: contains non-binary characters` |
-| Invalid octal | `0o89` | `invalid octal number: contains non-octal characters` |
-| Unterminated string | `"hello` | `unterminated string literal` |
-| Invalid escape | `"\q"` | `unknown escape sequence '\q'` |
-| Unterminated comment | `/* comment` | `unterminated block comment` |
-| Invalid operator | `&` | `unexpected character '&' - did you mean '&&'?` |
-| Unexpected character | `@` | `unexpected character '@' (Unicode: U+0040)` |
-
-### Error Recovery
-
-The lexer implements error recovery strategies:
-
-1. **Continue after errors** - doesn't stop on first error
-2. **Skip invalid sequences** - prevents cascading errors
-3. **Collect all errors** - single pass finds all issues
-4. **Maintain position tracking** - accurate line/column even after errors
-
-## Contributing
-
-Contributions are welcome! Please read our contributing guidelines:
-
-1. **Fork the repository**
-2. **Create a feature branch**: `git checkout -b feature/new-operator`
-3. **Add tests** for any new functionality
-4. **Test with test.lang**: Ensure `go run cmd/main.go test.lang` still passes
-5. **Ensure tests pass**: `go test ./...`
-6. **Submit a pull request**
-
-### Development Setup
+### Comprehensive Test Suite
+Run the full validation:
 
 ```bash
 git clone https://github.com/codetesla51/golexer.git
 cd golexer
-go mod download
+
+# Basic test
 go test ./...
-go run cmd/main.go test.lang  # Should show 0 errors
+
+# Comprehensive feature test  
+go run cmd/main.go test.lang
 ```
 
-### Adding New Features
+**Expected results:**
+```
+Analyzing file: test.lang
+File size: 15000+ bytes
 
-When extending the lexer:
+=== Token-by-token processing ===
+[Shows each token with position]
 
-1. **Identify the token type needed** (keyword, operator, punctuation)
-2. **Add token constant** in `token.go`
-3. **Add recognition logic** in `lexer.go` (keywords map, operators slice, or singleCharTokens map)
-4. **Add examples to test.lang**
-5. **Verify zero errors**: `go run cmd/main.go test.lang`
-6. **Add unit tests** for edge cases
+=== Batch processing ===
+Total tokens: 1700+
+Total errors: 0
 
-### Code Style
+Status: ✓ PASSED
+```
 
-- Follow `go fmt` formatting
-- Use `go vet` to check for issues  
-- Add tests for new features
-- Update documentation for API changes
-- Ensure `test.lang` validates your changes
+### What the Test Covers
+The `test.lang` file validates:
+- ✅ All number formats (decimal, hex, binary, octal, scientific)
+- ✅ String literals with all escape sequences
+- ✅ Character literals and special characters
+- ✅ Complete operator and punctuation coverage
+- ✅ Realistic code patterns (functions, objects, arrays)
+- ✅ Comment processing (line and block)
+- ✅ Complex expressions and nested structures
 
+
+## Contributing
+
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/name`
+3. Add tests and ensure `go run cmd/main.go test.lang` passes
+4. Test error conditions (missing configs, invalid files)
+5. Submit pull request
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) file for details.
 
-## Acknowledgments
-
-Inspired by the lexical analysis techniques described in "Crafting Interpreters" by Robert Nystrom and "Writing An Interpreter In Go" by Thorsten Ball.
-
----
-
-**Author**: Uthman Dev  
-**Repository**: https://github.com/codetesla51/golexer  
-**License**: MIT
+**Author**: Uthman Dev | **Repository**: https://github.com/codetesla51/golexer

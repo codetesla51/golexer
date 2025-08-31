@@ -30,10 +30,11 @@ func (c *Config) MergeWithDefaults() {
 		}
 	}
 }
+
 func LoadConfig(filename string) (*Config, error) {
 	data, err := os.ReadFile(filename)
 	if err != nil {
-		return &Config{}, nil
+		return nil, err
 	}
 
 	var config Config

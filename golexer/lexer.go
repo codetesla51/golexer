@@ -27,6 +27,7 @@ package golexer
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -95,9 +96,13 @@ func NewLexer(input string) *Lexer {
 // load config
 func NewLexerWithConfig(input, configFile string) *Lexer {
 	config, err := LoadConfig(configFile)
-	if err == nil {
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: failed to load config file '%s': %v\n", configFile, err)
+		fmt.Fprintf(os.Stderr, "Continuing with default configuration...\n")
+	} else {
 		config.MergeWithDefaults()
 	}
+
 	l := &Lexer{
 		input:  input,
 		line:   1,
