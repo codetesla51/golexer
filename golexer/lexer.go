@@ -1,3 +1,29 @@
+/*
+GoLexer - A Comprehensive Lexical Analyzer for Go
+Author: Uthman Dev
+GitHub: https://github.com/codetesla51/golexer
+License: MIT
+
+Core Lexical Analyzer Implementation
+This is the heart of the GoLexer library, providing comprehensive
+tokenization capabilities for modern programming languages.
+
+Features:
+- Multi-format number support (decimal, hex, binary, octal, scientific)
+- String literals with escape sequences and raw strings
+- Character literals with full escape sequence support
+- Complete operator set including compound assignments
+- Unicode identifier support
+- Comprehensive error recovery and reporting
+- Line/column position tracking
+- Comment handling (line and block comments)
+
+The lexer processes UTF-8 encoded source code and maintains precise
+position information for all tokens and errors, making it suitable
+for building IDEs, compilers, and language tools.
+*/
+
+
 package golexer
 
 import (
@@ -41,6 +67,7 @@ var singleCharTokens = map[rune]TokenType{
 	',':  COMMA,
 	';':  SEMICOLON,
 	':':  COLON,
+	'.': DOT,
 }
 
 // Lexer represents the lexical analyzer

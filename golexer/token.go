@@ -1,3 +1,26 @@
+/*
+GoLexer - A Comprehensive Lexical Analyzer for Go
+Author: Uthman Dev
+GitHub: https://github.com/codetesla51/golexer
+License: MIT
+
+Token Definitions and Types
+Defines all token types, the Token structure, and keyword mappings
+for the GoLexer library. This file serves as the central registry
+for all recognizable language elements.
+
+Includes:
+- Complete token type enumeration
+- Token structure with position information
+- Keyword to token type mapping
+- Token classification utilities
+
+The token types defined here support modern programming language
+constructs including arithmetic, logical, comparison operators,
+control flow keywords, and various literal types.
+*/
+
+
 package golexer
 
 // TokenType represents the type of a token
@@ -45,6 +68,7 @@ MODULUS_ASSIGN = "%="
 	COMMA     = ","
 	SEMICOLON = ";"
 	COLON     = ":"
+	DOT = "."
 BACKTICK_STRING = "BACKTICK_STRING"
 	// Brackets
 	LPAREN   = "("
