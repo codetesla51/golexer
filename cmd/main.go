@@ -44,7 +44,6 @@ func main() {
 	fmt.Printf("Analyzing file: %s\n", filename)
 	fmt.Printf("File size: %d bytes\n\n", len(content))
 
-	// Example 1: Token-by-token processing
 	fmt.Println("=== Token-by-token processing ===")
 	lexer := golexer.NewLexerWithConfig(string(content), "../config.json")
 
@@ -54,13 +53,11 @@ func main() {
 		if tok.Type == golexer.EOF {
 			break
 		}
-
 		fmt.Printf("Type: %-15s Literal: %-15s Line: %2d Column: %2d\n",
 			string(tok.Type), fmt.Sprintf("'%s'", tok.Literal), tok.Line, tok.Column)
 		tokenCount++
 	}
 
-	// Print any errors from first pass
 	if lexer.HasErrors() {
 		fmt.Println("\nLexical Errors (First Pass):")
 		for _, err := range lexer.GetErrors() {
@@ -71,14 +68,12 @@ func main() {
 	fmt.Printf("\nProcessed: %d tokens\n", tokenCount)
 	fmt.Println("\n=== Batch processing ===")
 
-	// Example 2: Batch processing
 	lexer2 := golexer.NewLexer(string(content))
 	tokens, errors := lexer2.TokenizeAll()
 
 	fmt.Printf("Total tokens: %d\n", len(tokens))
 	fmt.Printf("Total errors: %d\n", len(errors))
 
-	// Count token types
 	tokenCounts := make(map[golexer.TokenType]int)
 	for _, token := range tokens {
 		tokenCounts[token.Type]++
@@ -89,7 +84,6 @@ func main() {
 		fmt.Printf("  %-15s: %d\n", tokenType, count)
 	}
 
-	// Example 3: Enhanced syntax validation
 	fmt.Println("\n=== Syntax validation ===")
 	if len(errors) == 0 {
 		fmt.Println("✓ No lexical errors found - file is syntactically valid at lexical level")
@@ -100,7 +94,6 @@ func main() {
 		}
 	}
 
-	// Summary statistics
 	fmt.Println("\n=== Summary ===")
 	fmt.Printf("File: %s\n", filename)
 	fmt.Printf("Lines processed: %d\n", getLastLine(tokens))
@@ -112,11 +105,10 @@ func main() {
 		fmt.Println("Status: ✓ PASSED")
 	} else {
 		fmt.Println("Status: ✗ FAILED")
-		os.Exit(1) // Exit with error code if lexical errors found
+		os.Exit(1) 
 	}
 }
 
-// Helper function to get the last line number from tokens
 func getLastLine(tokens []golexer.Token) int {
 	if len(tokens) == 0 {
 		return 1
