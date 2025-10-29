@@ -1,4 +1,4 @@
-// Comprehensive Test Language - All Valid Syntax (Should Pass)
+// Comprehensive Test Language - All Valid Syntax 
 // Tests all features with correct syntax only
 
 // ======================
@@ -196,7 +196,7 @@ let complex = {
 // ======================
 
 let normal_spaces = 42
-let	with_tabs	=	43
+let        with_tabs        =        43
 let
 on_multiple
 lines
@@ -205,7 +205,7 @@ lines
 
 // Mixed whitespace (all valid)
 let   extra   spaces   =   45
-let	mixed_tabs_spaces = 46
+let        mixed_tabs_spaces = 46
 
 // ======================
 // 9. COMPLEX VALID EXPRESSIONS
@@ -257,12 +257,12 @@ let config = {
     // Database settings
     db_host: "localhost",     // Default host  
     db_port: 5432,           /* Standard port */
-    
+
     // API settings
     api_key: "sk-1234567890abcdef", // Secret key
     timeout: 30.0,           // In seconds
     retries: 3,             // Max attempts
-    
+
     // New features
     power_mode: enabled ** 2,
     fallback: primary ?? secondary,
@@ -319,29 +319,29 @@ async function comprehensive_example() {
     let octal = 0o777
     let float = 3.14159
     let scientific = 1.23e-4
-    
+
     // String handling
     let greeting = "Hello, World!"
     let multiline = `This is a
     multiline string with ${variable} interpolation`
-    
+
     // Character handling
     let newline = '\n'
     let quote = '\''
     let unicode = '\x48'
-    
+
     // All operators in action
     let math = (a + b) * c / d % e
     let comparison = (x == y) && (a != b) || (c < d) && (e >= f)
     let assignment = value
     assignment += increment
     assignment *= factor
-    
+
     // New operators
     let powered = base ** exponent
     let coalesced = nullable ?? "default"
     let safe = object ?. property ?. nested
-    
+
     // Complex data structures
     let data = {
         users: [
@@ -354,20 +354,20 @@ async function comprehensive_example() {
             $environment: "production"
         }
     }
-    
+
     // Control flow with new keywords
     unless error {
         process_data()
     }
-    
+
     until complete {
         await step()
     }
-    
+
     // Function calls and access
     let result = calculate(data.users[0].scores)
     let final = result ?. value ?? fallback_value ** 2
-    
+
     return final
 }
 
