@@ -29,6 +29,26 @@ go get github.com/codetesla51/golexer
 
 **Requirements**: Go 1.21 or later
 
+## Project Structure
+
+```
+golexer/
+├── cmd/
+│   └── main.go          # CLI demonstration tool
+├── examples/
+│   ├── config.json      # Example configuration for custom tokens
+│   └── test.lang        # Comprehensive test file (400+ lines)
+├── golexer/
+│   ├── config.go        # Configuration loading and merging
+│   ├── errors.go        # Error types and handling
+│   ├── lexer.go         # Core lexical analyzer
+│   ├── lexer_test.go    # Unit tests
+│   └── token.go         # Token types and keywords
+├── go.mod
+├── LICENSE
+└── README.md
+```
+
 ## Quick Start
 
 ### Basic Tokenization
@@ -93,7 +113,7 @@ Extend the lexer functionality using JSON configuration files. This allows you t
 
 ### Creating Configuration
 
-Create `config.json`:
+Create `examples/config.json`:
 ```json
 {
   "additionalKeywords": {
@@ -118,7 +138,7 @@ Create `config.json`:
 ### Using Configuration
 
 ```go
-lexer := golexer.NewLexerWithConfig(source, "config.json")
+lexer := golexer.NewLexerWithConfig(source, "examples/config.json")
 
 // Now recognizes extended syntax:
 source := `
@@ -485,10 +505,10 @@ git clone https://github.com/codetesla51/golexer.git
 cd golexer
 
 # Unit tests
-go test ./golexer
+go test ./golexer -v
 
 # Comprehensive integration test
-go run cmd/main.go test.lang
+go run cmd/main.go examples/test.lang
 ```
 
 ### Expected Results
@@ -520,7 +540,7 @@ The included CLI demonstrates all lexer capabilities:
 go run cmd/main.go yourfile.txt
 
 # Test with comprehensive example  
-go run cmd/main.go test.lang
+go run cmd/main.go examples/test.lang
 ```
 
 The CLI provides:

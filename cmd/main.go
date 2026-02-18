@@ -22,8 +22,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/codetesla51/golexer/golexer"
 	"os"
+
+	"github.com/codetesla51/golexer/golexer"
 )
 
 func main() {
@@ -45,7 +46,7 @@ func main() {
 	fmt.Printf("File size: %d bytes\n\n", len(content))
 
 	fmt.Println("=== Token-by-token processing ===")
-	lexer := golexer.NewLexerWithConfig(string(content), "../config.json")
+	lexer := golexer.NewLexerWithConfig(string(content), "examples/config.json")
 
 	tokenCount := 0
 	for {
@@ -105,7 +106,7 @@ func main() {
 		fmt.Println("Status: ✓ PASSED")
 	} else {
 		fmt.Println("Status: ✗ FAILED")
-		os.Exit(1) 
+		os.Exit(1)
 	}
 }
 

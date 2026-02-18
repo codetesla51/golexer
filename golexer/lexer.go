@@ -149,6 +149,7 @@ func (l *Lexer) addError(message string) {
 func (l *Lexer) readChar() {
 	if l.readPosition >= len(l.input) {
 		l.ch = 0
+		l.position = l.readPosition
 	} else {
 		r, size := utf8.DecodeRuneInString(l.input[l.readPosition:])
 		l.ch = r
@@ -158,7 +159,7 @@ func (l *Lexer) readChar() {
 
 	if l.ch == '\n' {
 		l.line++
-		l.column = 1
+		l.column = 0
 	} else {
 		l.column++
 	}
@@ -374,7 +375,7 @@ func (l *Lexer) readEscapeSequence() rune {
 	l.readChar() // consume backslash
 	if l.ch == 0 {
 		l.addError("unterminated escape sequence")
-		return 0
+		return -1
 	}
 
 	switch l.ch {
@@ -398,20 +399,31 @@ func (l *Lexer) readEscapeSequence() rune {
 		return '\''
 	case '"':
 		return '"'
-	case '0':
-		return '\000' // null character
+	case '0', '1', '2', '3', '4', '5', '6', '7':
+		// Octal escape sequence \NNN (1-3 octal digits)
+		val := rune(l.ch - '0')
+		for i := 0; i < 2; i++ {
+			next := l.peekChar()
+			if next >= '0' && next <= '7' {
+				l.readChar()
+				val = val*8 + rune(l.ch-'0')
+			} else {
+				break
+			}
+		}
+		return val
 	case 'x':
 		// Hex escape sequence \xNN
 		l.readChar()
 		if !isHexDigit(l.ch) {
 			l.addError("invalid hex escape sequence: expected hex digit after \\x")
-			return 0
+			return -1
 		}
 		first := l.ch
 		l.readChar()
 		if !isHexDigit(l.ch) {
 			l.addError("invalid hex escape sequence: expected two hex digits after \\x")
-			return 0
+			return -1
 		}
 		second := l.ch
 		// Convert hex digits to rune
@@ -454,7 +466,7 @@ func (l *Lexer) readCharLiteral() string {
 
 	if l.ch == '\\' {
 		char := l.readEscapeSequence()
-		if char != 0 {
+		if char != -1 {
 			result.WriteRune(char)
 		}
 	} else {
@@ -485,7 +497,7 @@ func (l *Lexer) readString() string {
 		}
 		if l.ch == '\\' {
 			char := l.readEscapeSequence()
-			if char != 0 {
+			if char != -1 {
 				result.WriteRune(char)
 			}
 		} else {
