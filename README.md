@@ -123,9 +123,7 @@ Create `examples/config.json`:
     "await": "AWAIT"
   },
   "additionalOperators": {
-    "**": "POWER",
-    "??": "NULL_COALESCE",
-    "?.": "SAFE_NAVIGATION"
+    //single char operators
   },
   "additionalPunctuation": {
     "@": "AT_SYMBOL",
