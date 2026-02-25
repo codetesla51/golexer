@@ -101,6 +101,7 @@ const (
 	TYPE_BOOL   = "TYPE_BOOL"
 	TYPE_CHAR   = "TYPE_CHAR"
 	CHAR        = "CHAR"
+	ARROW       = "->"
 )
 
 // keywords maps string literals to their corresponding token types
@@ -124,6 +125,8 @@ var keywords = map[string]TokenType{
 	"string": TYPE_STRING,
 	"bool":   TYPE_BOOL,
 	"char":   TYPE_CHAR,
+	// Add more keywords as needed
+
 }
 
 // LookupIdent checks if an identifier is a keyword and returns the appropriate token type

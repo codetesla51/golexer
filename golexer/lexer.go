@@ -552,6 +552,15 @@ func (l *Lexer) skipBlockComment() {
 func (l *Lexer) tryOperator(line, column int) (Token, bool) {
 	for _, op := range operators {
 		if l.ch == rune(op.Single[0]) {
+			if l.ch == '-' && l.peekChar() == '>' {
+				l.readChar()
+				return Token{
+					Type:    ARROW,
+					Literal: "->",
+					Line:    line,
+					Column:  column,
+				}, true
+			}
 			// Handle special cases for & and | which require compound form
 			if (l.ch == '&' || l.ch == '|') && op.Compound != "" {
 				if l.peekChar() == rune(op.Compound[1]) {
