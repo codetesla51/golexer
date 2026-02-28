@@ -119,14 +119,6 @@ var keywords = map[string]TokenType{
 	"true":     TRUE,
 	"false":    FALSE,
 	"null":     NULL,
-	// Type keywords
-	"int":    TYPE_INT,
-	"float":  TYPE_FLOAT,
-	"string": TYPE_STRING,
-	"bool":   TYPE_BOOL,
-	"char":   TYPE_CHAR,
-	// Add more keywords as needed
-
 }
 
 // LookupIdent checks if an identifier is a keyword and returns the appropriate token type
