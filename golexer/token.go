@@ -126,6 +126,13 @@ var keywords = map[string]TokenType{
 	"true":     TRUE,
 	"false":    FALSE,
 	"null":     NULL,
+	"default":  DEFAULT,
+	"case":     CASE,
+	"switch":   SWITCH,
+	"in":       IN,
+	"table":    TABLE,
+	"use":      USE,
+	"spawn":    SPAWN,
 }
 
 // LookupIdent checks if an identifier is a keyword and returns the appropriate token type
