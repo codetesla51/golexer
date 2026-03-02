@@ -102,6 +102,13 @@ const (
 	TYPE_CHAR   = "TYPE_CHAR"
 	CHAR        = "CHAR"
 	ARROW       = "->"
+	DEFAULT     = "DEFAULT"
+	CASE        = "CASE"
+	SWITCH      = "SWITCH"
+	IN          = "IN"
+	TABLE       = "TABLE"
+	USE         = "USE"
+	SPAWN       = "SPAWN"
 )
 
 // keywords maps string literals to their corresponding token types
