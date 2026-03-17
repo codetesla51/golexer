@@ -43,6 +43,7 @@ const (
 	MULTIPLY = "*"
 	DIVIDE   = "/"
 	NUMBER   = "NUMBER"
+	QUESTION = "?"
 	MODULUS  = "%"
 	// Logical operators
 	BANG = "!"
