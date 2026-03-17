@@ -43,6 +43,7 @@ type Operator struct {
 
 // operators defines all operators with their single and compound forms
 var operators = []Operator{
+
 	{"=", ASSIGN, "==", EQL},
 	{"+", PLUS, "+=", PLUS_ASSIGN},
 	{"-", MINUS, "-=", MINUS_ASSIGN},
@@ -68,6 +69,7 @@ var singleCharTokens = map[rune]TokenType{
 	';': SEMICOLON,
 	':': COLON,
 	'.': DOT,
+	'?': QUESTION,
 }
 
 // Lexer represents the lexical analyzer
