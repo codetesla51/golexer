@@ -519,15 +519,15 @@ func (l *Lexer) readString() (string, bool) {
 		}
 		if l.ch == '$' && l.peekChar() == '{' {
 			interpolated = true
-			if result.Len() > 0 {
-				l.tokenBuffer = append(l.tokenBuffer, Token{
-					Type:    STRING_PART,
-					Literal: result.String(),
-					Line:    startLine,
-					Column:  startColumn,
-				})
-				result.Reset()
-			}
+
+			l.tokenBuffer = append(l.tokenBuffer, Token{
+				Type:    STRING_PART,
+				Literal: result.String(),
+				Line:    startLine,
+				Column:  startColumn,
+			})
+			result.Reset()
+
 			l.readChar()
 			l.readChar()
 
