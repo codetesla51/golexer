@@ -64,6 +64,8 @@ const (
 	MULTIPLY_ASSIGN = "*="
 	DIVIDE_ASSIGN   = "/="
 	MODULUS_ASSIGN  = "%="
+	INCREMENT       = "++"
+	DECREMENT       = "--"
 	// Delimiters
 	COMMA           = ","
 	SEMICOLON       = ";"
@@ -79,21 +81,23 @@ const (
 	RBRACKET = "]"
 
 	// Identifiers and Keywords
-	IDENT    = "IDENT"
-	LET      = "LET"
-	CONST    = "CONST"
-	FN       = "FN"
-	IF       = "IF"
-	ELSE     = "ELSE"
-	WHILE    = "WHILE"
-	FOR      = "FOR"
-	RETURN   = "RETURN"
-	BREAK    = "BREAK"
-	CONTINUE = "CONTINUE"
-	TRUE     = "TRUE"
-	FALSE    = "FALSE"
-	NULL     = "NULL"
-	STRING   = "STRING"
+	IDENT       = "IDENT"
+	LET         = "LET"
+	CONST       = "CONST"
+	FN          = "FN"
+	IF          = "IF"
+	ELSE        = "ELSE"
+	WHILE       = "WHILE"
+	FOR         = "FOR"
+	RETURN      = "RETURN"
+	BREAK       = "BREAK"
+	CONTINUE    = "CONTINUE"
+	TRUE        = "TRUE"
+	FALSE       = "FALSE"
+	NULL        = "NULL"
+	STRING      = "STRING"
+	STRING_PART = "STRING_PART"
+	INTERP_END  = "INTERP_END"
 
 	// Type tokens
 	TYPE_INT    = "TYPE_INT"
@@ -103,6 +107,7 @@ const (
 	TYPE_CHAR   = "TYPE_CHAR"
 	CHAR        = "CHAR"
 	ARROW       = "->"
+	PIPE        = "<|"
 	DEFAULT     = "DEFAULT"
 	CASE        = "CASE"
 	SWITCH      = "SWITCH"
@@ -110,6 +115,7 @@ const (
 	TABLE       = "TABLE"
 	USE         = "USE"
 	SPAWN       = "SPAWN"
+	TRY         = "TRY"
 )
 
 // keywords maps string literals to their corresponding token types
@@ -134,6 +140,7 @@ var keywords = map[string]TokenType{
 	"table":    TABLE,
 	"use":      USE,
 	"spawn":    SPAWN,
+	"try":      TRY,
 }
 
 // LookupIdent checks if an identifier is a keyword and returns the appropriate token type

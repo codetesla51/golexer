@@ -55,6 +55,7 @@ var operators = []Operator{
 	{">", GREATER_THAN, ">=", GREATER_THAN_EQL},
 	{"&", "", "&&", AND}, // Single & is invalid
 	{"|", "", "||", OR},  // Single | is invalid
+
 }
 
 // singleCharTokens maps single characters to their token types
@@ -81,6 +82,7 @@ type Lexer struct {
 	line         int
 	column       int
 	errors       []*LexError
+	tokenBuffer  []Token
 }
 
 // NewLexer creates a new lexer instance with the given input
@@ -485,8 +487,12 @@ func (l *Lexer) readCharLiteral() string {
 	return result.String()
 }
 
-func (l *Lexer) readString() string {
+func (l *Lexer) readString() (string, bool) {
 	var result strings.Builder
+	l.tokenBuffer = nil
+	interpolated := false
+	startLine := l.line
+	startColumn := l.column
 
 	for {
 		l.readChar()
@@ -495,19 +501,243 @@ func (l *Lexer) readString() string {
 			break
 		}
 		if l.ch == '"' {
+			l.readChar()
 			break
 		}
 		if l.ch == '\\' {
+			next := l.peekChar()
+			if next == '$' {
+				result.WriteRune('$')
+				l.readChar()
+				continue
+			}
 			char := l.readEscapeSequence()
 			if char != -1 {
 				result.WriteRune(char)
 			}
-		} else {
-			result.WriteRune(l.ch)
+			continue
 		}
+		if l.ch == '$' && l.peekChar() == '{' {
+			interpolated = true
+			if result.Len() > 0 {
+				l.tokenBuffer = append(l.tokenBuffer, Token{
+					Type:    STRING_PART,
+					Literal: result.String(),
+					Line:    startLine,
+					Column:  startColumn,
+				})
+				result.Reset()
+			}
+			l.readChar()
+			l.readChar()
+
+			depth := 1
+			for depth > 0 {
+				if l.ch == '{' {
+					depth++
+					l.tokenBuffer = append(l.tokenBuffer, Token{
+						Type:    LBRACE,
+						Literal: "{",
+						Line:    l.line,
+						Column:  l.column,
+					})
+					l.readChar()
+					continue
+				}
+				if l.ch == '}' {
+					depth--
+					if depth > 0 {
+						l.tokenBuffer = append(l.tokenBuffer, Token{
+							Type:    RBRACE,
+							Literal: "}",
+							Line:    l.line,
+							Column:  l.column,
+						})
+						l.readChar()
+					}
+					continue
+				}
+				if l.ch == 0 {
+					l.addError("unterminated interpolated expression")
+					break
+				}
+				if isLetter(l.ch) || l.ch == '_' {
+					identStart := l.position
+					for isLetter(l.ch) || isDigit(l.ch) {
+						l.readChar()
+					}
+					ident := l.input[identStart:l.position]
+					l.tokenBuffer = append(l.tokenBuffer, Token{
+						Type:    LookupIdent(ident),
+						Literal: ident,
+						Line:    l.line,
+						Column:  l.column,
+					})
+					continue
+				}
+				if isDigit(l.ch) {
+					numStart := l.position
+					for isDigit(l.ch) {
+						l.readChar()
+					}
+					num := l.input[numStart:l.position]
+					l.tokenBuffer = append(l.tokenBuffer, Token{
+						Type:    NUMBER,
+						Literal: num,
+						Line:    l.line,
+						Column:  l.column,
+					})
+					continue
+				}
+				if l.ch == '.' && isDigit(l.peekChar()) {
+					l.readChar()
+					numStart := l.position - 1
+					for isDigit(l.ch) {
+						l.readChar()
+					}
+					num := l.input[numStart:l.position]
+					l.tokenBuffer = append(l.tokenBuffer, Token{
+						Type:    NUMBER,
+						Literal: num,
+						Line:    l.line,
+						Column:  l.column,
+					})
+					continue
+				}
+				if l.ch == '(' {
+					l.tokenBuffer = append(l.tokenBuffer, Token{
+						Type:    LPAREN,
+						Literal: "(",
+						Line:    l.line,
+						Column:  l.column,
+					})
+					l.readChar()
+					continue
+				}
+				if l.ch == ')' {
+					l.tokenBuffer = append(l.tokenBuffer, Token{
+						Type:    RPAREN,
+						Literal: ")",
+						Line:    l.line,
+						Column:  l.column,
+					})
+					l.readChar()
+					continue
+				}
+				if l.ch == '[' {
+					l.tokenBuffer = append(l.tokenBuffer, Token{
+						Type:    LBRACKET,
+						Literal: "[",
+						Line:    l.line,
+						Column:  l.column,
+					})
+					l.readChar()
+					continue
+				}
+				if l.ch == ']' {
+					l.tokenBuffer = append(l.tokenBuffer, Token{
+						Type:    RBRACKET,
+						Literal: "]",
+						Line:    l.line,
+						Column:  l.column,
+					})
+					l.readChar()
+					continue
+				}
+				if l.ch == ',' {
+					l.tokenBuffer = append(l.tokenBuffer, Token{
+						Type:    COMMA,
+						Literal: ",",
+						Line:    l.line,
+						Column:  l.column,
+					})
+					l.readChar()
+					continue
+				}
+				if l.ch == ':' {
+					l.tokenBuffer = append(l.tokenBuffer, Token{
+						Type:    COLON,
+						Literal: ":",
+						Line:    l.line,
+						Column:  l.column,
+					})
+					l.readChar()
+					continue
+				}
+				if l.ch == '+' {
+					l.tokenBuffer = append(l.tokenBuffer, Token{
+						Type:    PLUS,
+						Literal: "+",
+						Line:    l.line,
+						Column:  l.column,
+					})
+					l.readChar()
+					continue
+				}
+				if l.ch == '-' {
+					l.tokenBuffer = append(l.tokenBuffer, Token{
+						Type:    MINUS,
+						Literal: "-",
+						Line:    l.line,
+						Column:  l.column,
+					})
+					l.readChar()
+					continue
+				}
+				if l.ch == '*' {
+					l.tokenBuffer = append(l.tokenBuffer, Token{
+						Type:    MULTIPLY,
+						Literal: "*",
+						Line:    l.line,
+						Column:  l.column,
+					})
+					l.readChar()
+					continue
+				}
+				if l.ch == '/' {
+					l.tokenBuffer = append(l.tokenBuffer, Token{
+						Type:    DIVIDE,
+						Literal: "/",
+						Line:    l.line,
+						Column:  l.column,
+					})
+					l.readChar()
+					continue
+				}
+				if l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
+					l.readChar()
+					continue
+				}
+				l.addError(fmt.Sprintf("unexpected character '%c' in interpolated expression", l.ch))
+				l.readChar()
+			}
+
+			l.tokenBuffer = append(l.tokenBuffer, Token{
+				Type:    INTERP_END,
+				Literal: "",
+				Line:    l.line,
+				Column:  l.column,
+			})
+			startLine = l.line
+			startColumn = l.column
+			continue
+		}
+		result.WriteRune(l.ch)
 	}
 
-	return result.String()
+	if interpolated {
+		if result.Len() > 0 {
+			l.tokenBuffer = append(l.tokenBuffer, Token{
+				Type:    STRING_PART,
+				Literal: result.String(),
+				Line:    startLine,
+				Column:  startColumn,
+			})
+		}
+		return "", true
+	}
+
+	return result.String(), false
 }
 
 func (l *Lexer) readBacktickString() string {
@@ -563,6 +793,33 @@ func (l *Lexer) tryOperator(line, column int) (Token, bool) {
 					Column:  column,
 				}, true
 			}
+			if l.ch == '<' && l.peekChar() == '|' {
+				l.readChar()
+				return Token{
+					Type:    PIPE,
+					Literal: "<|",
+					Line:    line,
+					Column:  column,
+				}, true
+			}
+			if l.ch == '+' && l.peekChar() == '+' {
+				l.readChar()
+				return Token{
+					Type:    INCREMENT,
+					Literal: "++",
+					Line:    line,
+					Column:  column,
+				}, true
+			}
+			if l.ch == '-' && l.peekChar() == '-' {
+				l.readChar()
+				return Token{
+					Type:    DECREMENT,
+					Literal: "--",
+					Line:    line,
+					Column:  column,
+				}, true
+			}
 			// Handle special cases for & and | which require compound form
 			if (l.ch == '&' || l.ch == '|') && op.Compound != "" {
 				if l.peekChar() == rune(op.Compound[1]) {
@@ -611,6 +868,12 @@ func (l *Lexer) tryOperator(line, column int) (Token, bool) {
 
 func (l *Lexer) NextToken() Token {
 	var tok Token
+
+	if len(l.tokenBuffer) > 0 {
+		tok := l.tokenBuffer[0]
+		l.tokenBuffer = l.tokenBuffer[1:]
+		return tok
+	}
 
 	l.skipWhitespace()
 
@@ -676,13 +939,19 @@ func (l *Lexer) NextToken() Token {
 		// readCharLiteral already consumed the closing quote
 		return tok
 	case '"':
-		str := l.readString()
+		str, isInterpolated := l.readString()
+		if isInterpolated {
+			tok = l.tokenBuffer[0]
+			l.tokenBuffer = l.tokenBuffer[1:]
+			return tok
+		}
 		tok = Token{
 			Type:    STRING,
 			Literal: str,
 			Line:    line,
 			Column:  column,
 		}
+		return tok
 	case '`':
 		str := l.readBacktickString()
 		tok = Token{
