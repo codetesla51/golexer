@@ -793,7 +793,7 @@ func (l *Lexer) tryOperator(line, column int) (Token, bool) {
 					Column:  column,
 				}, true
 			}
-			if l.ch == '|' && l.peekChar() == '|' {
+			if l.ch == '|' && l.peekChar() == '>' {
 				l.readChar()
 				return Token{
 					Type:    PIPE,

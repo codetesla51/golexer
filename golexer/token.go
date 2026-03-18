@@ -107,7 +107,7 @@ const (
 	TYPE_CHAR   = "TYPE_CHAR"
 	CHAR        = "CHAR"
 	ARROW       = "->"
-	PIPE        = "<|"
+	PIPE        = "|>"
 	DEFAULT     = "DEFAULT"
 	CASE        = "CASE"
 	SWITCH      = "SWITCH"
