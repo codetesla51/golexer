@@ -684,6 +684,16 @@ func (l *Lexer) readString() (string, bool) {
 					l.readChar()
 					continue
 				}
+				if l.ch == '.' {
+					l.tokenBuffer = append(l.tokenBuffer, Token{
+						Type:    DOT,
+						Literal: ".",
+						Line:    l.line,
+						Column:  l.column,
+					})
+					l.readChar()
+					continue
+				}
 				if l.ch == '*' {
 					l.tokenBuffer = append(l.tokenBuffer, Token{
 						Type:    MULTIPLY,
